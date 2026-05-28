@@ -48,11 +48,9 @@ export async function POST(req: NextRequest) {
         create: { email, city, source },
         update: { ...(city ? { city } : {}) },
       })
-      // If updatedAt ≈ createdAt it's a new entry; otherwise a duplicate re-submit
-      const diffMs = result.updatedAt
-        ? result.updatedAt.getTime() - result.createdAt.getTime()
-        : 0
-      isNewSignup = diffMs < 2000
+      // If createdAt is within the last 2 seconds it's a new entry; otherwise a duplicate re-submit
+      // (Waitlist model has no updatedAt — we check createdAt recency instead)
+      isNewSignup = Date.now() - result.createdAt.getTime() < 2000
       console.log(`[waitlist] ✓ Saved to DB: ${email} (new=${isNewSignup})`)
     } catch (dbErr: any) {
       const msg = String(dbErr?.message ?? "")
