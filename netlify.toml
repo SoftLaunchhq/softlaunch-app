@@ -1,0 +1,11 @@
+[build]
+  command   = "prisma generate && next build"
+  publish   = ".next"
+
+[build.environment]
+  NODE_VERSION = "18"
+  # Prisma needs this to generate the correct binary for Netlify's Linux environment
+  PRISMA_CLI_BINARY_TARGETS = "rhel-openssl-1.0.x"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
