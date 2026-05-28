@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="sl-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#0D9488"/>
+      <stop offset="45%"  stop-color="#16A34A"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <linearGradient id="sl-grad-logo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#14B8A6"/>
+      <stop offset="50%"  stop-color="#22C55E"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="120" height="120" rx="28" fill="url(#sl-grad)"/>
+
+  <!-- S letterform -->
+  <path
+    d="M22 42c0-10.5 8-17 19-17 9 0 16 4.5 18.5 12l-8.5 3c-1.5-4.5-5-7-10-7-5.5 0-9 3-9 7.5 0 4 2.5 6.5 9 8.5l5 1.5C55 54.5 61 60 61 70c0 11-8.5 18-21 18-10.5 0-18-5-20.5-14l9-3c1.5 5.5 5.5 8.5 11.5 8.5 6.5 0 11-3.5 11-9 0-4.5-3-7.5-10-9.5l-5-1.5C26.5 57 22 51.5 22 42z"
+    fill="white"
+    opacity="0.97"
+  />
+
+  <!-- L letterform with leaf/launch accent -->
+  <path
+    d="M68 88V27h10v52h20v9H68z"
+    fill="white"
+    opacity="0.97"
+  />
+
+  <!-- Leaf/sprout accent on top of L -->
+  <path
+    d="M93 18c0 0-14 2-14 14 0 4 2 7 5 9 1-7 5-12 9-14 0 0-4 5-4 12 3-1 5-4 6-7 0 6-4 11-10 13 2 1 4 1.5 6 1.5 8 0 13-7 13-15 0-8-5-13.5-11-13.5z"
+    fill="white"
+    opacity="0.92"
+  />
+</svg>

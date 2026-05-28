@@ -1,0 +1,770 @@
+// SoftLaunch — Prisma Schema
+// Production-ready schema with future-proof extensibility
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl removed: port 5432 is blocked on residential ISPs.
+  // DATABASE_URL uses the Supabase transaction pooler (port 6543, pgbouncer=true)
+  // which works for both runtime queries AND `prisma db push` in simple-query mode.
+  // Re-add directUrl on Vercel (session pooler URL, port 5432 is open from cloud IPs).
+}
+
+// ─────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────
+
+enum UserRole {
+  USER
+  ADMIN
+  FOUNDER
+}
+
+enum CohortStatus {
+  FORMING          // Algorithm suggested, not yet approved
+  PENDING_APPROVAL // Submitted for founder review
+  APPROVED         // Founder approved, ready to start
+  ACTIVE           // Currently running (Week 1-4)
+  COMPLETED        // All 4 weeks done
+  DISSOLVED        // Disbanded early
+}
+
+enum CohortTheme {
+  CAREER_GROWTH
+  FOUNDERS_BUILDERS
+  FITNESS_DISCIPLINE
+  ACCOUNTABILITY
+  CREATIVE_AMBITION
+  GENERAL
+}
+
+enum MembershipStatus {
+  PENDING  // Cohort approved, user not yet confirmed
+  ACTIVE   // Actively in cohort
+  PAUSED   // Subscription paused
+  CHURNED  // Left cohort early
+}
+
+enum PaymentStatus {
+  FREE        // Week 1 (no payment)
+  ACTIVE      // Subscribed and current
+  PAST_DUE    // Payment failed
+  CANCELED    // Subscription canceled
+  INCOMPLETE  // Checkout started but not completed
+}
+
+enum WeekStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+}
+
+enum FeedbackType {
+  POST_SESSION // After an individual session
+  POST_WEEK    // End of week summary
+  EXIT         // Leaving the cohort
+}
+
+enum OnboardingStep {
+  WELCOME
+  ASSESSMENT
+  REVEAL
+  PROFILE
+  COMPLETE
+}
+
+enum OneOnOneMatchStatus {
+  PENDING_REVIEW  // Algorithm suggested, awaiting admin review
+  APPROVED        // Admin approved — users can see each other
+  ACTIVE          // Both users have engaged / messaging started
+  COMPLETED       // Match ran its course (user feedback submitted)
+  REJECTED        // Admin rejected — will re-run matching
+  REMATCHING      // User requested a new match
+}
+
+// ─────────────────────────────────────────────────────────────
+// CORE USER MODELS
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  clerkId   String?  @unique
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Onboarding state
+  onboardingStep    OnboardingStep @default(WELCOME)
+  onboardingComplete Boolean       @default(false)
+
+  // Future-proof location fields (Passport feature V2)
+  currentCity    String? @default("Charlotte, NC")
+  futureCity     String? // Target city for relocation
+  moveTimeline   String? // "3 months", "6 months", "1 year", "exploring"
+  openToRelocate Boolean @default(false)
+
+  // Relations
+  profile        Profile?
+  assessment     Assessment?
+  driveProfile   DriveProfile?
+  psychProfile   PsychProfile?
+  cohortPrefs    CohortPreferences?
+  memberships    CohortMembership[]
+  payments       Payment[]
+  subscription   Subscription?
+  feedbacks      Feedback[]
+  attendances    Attendance[]
+  weeklyResponses WeeklyResponse[]
+  adminActions   AdminAction[]   @relation("AdminActionAdmin")
+  buzzMemories   BuzzMemory[]
+  buzzConversations BuzzConversation[]
+  behavioralSignals BehavioralSignal[]
+  sentMessages   Message[]        @relation("MessageSender")
+
+  // 1-on-1 matching
+  oneOnOneMatchesAsA OneOnOneMatch[] @relation("OneOnOneMatchUserA")
+  oneOnOneMatchesAsB OneOnOneMatch[] @relation("OneOnOneMatchUserB")
+  oneOnOneMessages   OneOnOneMessage[]
+
+  @@index([email])
+  @@index([clerkId])
+}
+
+model Profile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName   String
+  lastName    String
+  photoUrl    String?
+  bio         String?  @db.Text
+  headline    String?  // e.g., "Founder & Builder in Charlotte"
+
+  age             Int?
+  linkedinUrl     String?
+  instagramHandle String?
+  twitterHandle   String?
+
+  // Computed display metrics (updated from behavior signals)
+  engagementScore  Float? // 0-100, computed from feedback + attendance
+  completionRate   Float? // % of cohorts completed
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────
+// ASSESSMENT + DRIVE PROFILE
+// ─────────────────────────────────────────────────────────────
+
+model Assessment {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  completedAt DateTime?
+  version     Int       @default(1) // Bump when questions change
+
+  // Dimension scores (normalized 0-100, computed from answers)
+  ambitionScore   Float?
+  communityScore  Float?
+  disciplineScore Float?
+  opennessScore   Float?
+  growthScore     Float?
+
+  answers AssessmentAnswer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AssessmentAnswer {
+  id           String     @id @default(cuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  questionId   String // "q1" through "q5"
+  questionText String
+  answerKey    String // machine-readable answer key
+  answerText   String // human-readable answer
+  answerScore  Float  // normalized score contribution (0-20)
+  dimension    String // which drive dimension this contributes to
+
+  createdAt DateTime @default(now())
+
+  @@unique([assessmentId, questionId])
+}
+
+model DriveProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Generated archetype
+  archetype     String // "The Builder", "The Connector", "The Disciplined", etc.
+  archetypeSlug String // "builder", "connector", "disciplined"
+  summary       String @db.Text // 2-3 sentence profile summary
+
+  // Core dimension scores (0-100) — set from assessment
+  ambition   Float
+  community  Float
+  discipline Float
+  openness   Float
+  growth     Float
+
+  // Behavior-enhanced multipliers (updated after each cohort)
+  // These amplify matching quality over time
+  behaviorAmplifier Float @default(1.0) // > 1.0 = reliable, < 1.0 = unreliable
+  sessionAttendanceRate Float @default(0) // % sessions attended across all cohorts
+  avgFeedbackRating     Float @default(0) // avg rating given to their cohorts
+  cohortCompletionRate  Float @default(0) // % cohorts completed
+  cohortsJoined         Int   @default(0)
+
+  version   Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────
+// COHORT PREFERENCES
+// ─────────────────────────────────────────────────────────────
+
+model CohortPreferences {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Intent tags — what kind of group do they want?
+  preferredThemes CohortTheme[]
+
+  // Who they want around them
+  wantsFounders  Boolean @default(false)
+  wantsAthletes  Boolean @default(false)
+  wantsCreatives Boolean @default(false)
+  wantsExecs     Boolean @default(false)
+
+  // Availability
+  preferredDays String[] // ["monday", "wednesday", "thursday"]
+  preferredTime String?  // "mornings", "evenings", "weekends"
+
+  // Open to meeting with:
+  remoteOk    Boolean @default(false) // willing to do virtual cohorts
+  maxDistance Int?    // miles (future use)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────
+// COHORTS + MEMBERSHIPS
+// ─────────────────────────────────────────────────────────────
+
+model Cohort {
+  id   String      @id @default(cuid())
+  name String      // e.g., "Cohort CLT-001" or "The Builders"
+  theme CohortTheme @default(GENERAL)
+  status CohortStatus @default(FORMING)
+
+  // Lifecycle dates
+  startDate   DateTime?
+  endDate     DateTime?
+  currentWeek Int       @default(0)
+  maxMembers  Int       @default(4)
+
+  // Location (future multi-city support)
+  city    String @default("Charlotte, NC")
+  cityCode String @default("CLT") // Airport code for short reference
+
+  // External tool links (manual for MVP)
+  whatsappGroupLink String?
+  notionDocLink     String?
+  calendlyLink      String?
+  zoomLink          String?
+
+  // Matching metadata
+  matchScore      Float? // 0-100 aggregate compatibility score
+  matchingVersion Int    @default(1) // which version of the algorithm was used
+  matchingNotes   String? @db.Text // human notes on why this group was formed
+
+  // Admin management
+  adminNotes String?   @db.Text
+  approvedBy String?   // admin userId
+  approvedAt DateTime?
+
+  // Relations
+  memberships  CohortMembership[]
+  weeklyPrompts WeeklyPrompt[]
+  feedbacks    Feedback[]
+  attendances  Attendance[]
+  adminActions AdminAction[]
+  payments     Payment[]
+  threads      ConversationThread[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([city])
+}
+
+model CohortMembership {
+  id       String @id @default(cuid())
+  cohortId String
+  cohort   Cohort @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status          MembershipStatus @default(PENDING)
+  joinedAt        DateTime?
+  leftAt          DateTime?
+  leftReason      String?
+
+  // Access control
+  currentWeek     Int @default(1)
+  weekAccessLevel Int @default(1) // 1 = free week, 4 = all weeks paid
+
+  // Compatibility (set by matching engine)
+  compatibilityScore Float? // 0-100 score within this specific cohort
+
+  // Per-member notes (admin use)
+  adminNotes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cohortId, userId])
+  @@index([userId])
+  @@index([cohortId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// WEEKLY PROMPTS + RESPONSES
+// ─────────────────────────────────────────────────────────────
+
+model WeeklyPrompt {
+  id       String @id @default(cuid())
+  cohortId String
+  cohort   Cohort @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  weekNumber  Int        // 1-4
+  title       String
+  promptText  String     @db.Text
+  resourceLink String?   // Notion doc, article, etc.
+  status      WeekStatus @default(UPCOMING)
+
+  scheduledFor DateTime?
+  sentAt       DateTime?
+
+  responses WeeklyResponse[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cohortId, weekNumber])
+}
+
+model WeeklyResponse {
+  id       String       @id @default(cuid())
+  promptId String
+  prompt   WeeklyPrompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  responseText String   @db.Text
+  submittedAt  DateTime @default(now())
+
+  @@unique([promptId, userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// FEEDBACK + ATTENDANCE
+// ─────────────────────────────────────────────────────────────
+
+model Feedback {
+  id       String      @id @default(cuid())
+  userId   String
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cohortId String
+  cohort   Cohort      @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  type       FeedbackType
+  weekNumber Int
+
+  // Quantitative signals (used to improve matching)
+  sessionRating Int?    // 1-5: how valuable was the session?
+  wouldContinue Boolean? // would you continue with this group?
+  topVibeWith   String?  // userId of person they connected with most
+  sessionValue  Int?    // 1-5: personal value gained
+  groupChemistry Int?   // 1-5: how well does the group gel?
+
+  // Confirmation
+  attendanceConfirmed Boolean @default(false)
+
+  // Open text
+  openResponse String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, cohortId, weekNumber, type])
+  @@index([cohortId])
+  @@index([userId])
+}
+
+model Attendance {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cohortId String
+  cohort   Cohort @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  weekNumber   Int
+  attended     Boolean
+  confirmedAt  DateTime?
+  confirmedBy  String?  // "self" or admin userId
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, cohortId, weekNumber])
+  @@index([cohortId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// BILLING + SUBSCRIPTIONS
+// ─────────────────────────────────────────────────────────────
+
+model Subscription {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  stripeCustomerId String? @unique
+  stripeSubId      String? @unique
+  stripePriceId    String?
+
+  status            PaymentStatus @default(FREE)
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean      @default(false)
+  canceledAt         DateTime?
+
+  // Price A/B test tracking
+  amount Int?   // cents, e.g., 3000 or 5000
+  priceVariant String? // "A" or "B" for A/B test tracking
+
+  trialEndsAt DateTime? // For future trial extension scenarios
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  stripePaymentId     String? @unique
+  stripeInvoiceId     String? @unique
+
+  amount   Int    // cents
+  currency String @default("usd")
+  status   String // "succeeded", "failed", "pending", "refunded"
+
+  description String?
+  weekNumber  Int?    // which cohort week this payment covers
+  cohortId    String?
+  cohort      Cohort? @relation(fields: [cohortId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN + OPERATIONS
+// ─────────────────────────────────────────────────────────────
+
+model AdminAction {
+  id      String @id @default(cuid())
+  adminId String
+  admin   User   @relation("AdminActionAdmin", fields: [adminId], references: [id])
+
+  cohortId String?
+  cohort   Cohort? @relation(fields: [cohortId], references: [id])
+
+  actionType String  // "APPROVED_COHORT" | "DISSOLVED_COHORT" | "SENT_PROMPT" | "UPDATED_MEMBER" | "RAN_MATCHING" | "OVERRODE_MATCHING" | "EXTENDED_TRIAL"
+  notes      String? @db.Text
+  metadata   Json?   // Flexible key-value store for action details
+
+  createdAt DateTime @default(now())
+
+  @@index([cohortId])
+  @@index([adminId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// WAITLIST + PIPELINE
+// ─────────────────────────────────────────────────────────────
+
+model Waitlist {
+  id        String @id @default(cuid())
+  email     String @unique
+  firstName String?
+  lastName  String?
+
+  source      String? // "landing_page" | "instagram" | "flyer" | "referral" | "word_of_mouth"
+  referralCode String?
+  city        String? @default("Charlotte, NC")
+
+  // Conversion tracking
+  convertedAt     DateTime?
+  convertedUserId String?
+
+  // Outreach tracking
+  emailedAt   DateTime?
+  reminderSentAt DateTime?
+  followUpCount Int @default(0)
+
+  // Notes (admin)
+  adminNotes String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+// ─────────────────────────────────────────────────────────────
+// FUTURE: PASSPORT FEATURE FOUNDATION
+// These models are not actively used in MVP but architected now
+// so V2 requires no schema rewrite
+// ─────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────
+// BUZZ.AI — PERSONALITY MEMORY + CONVERSATION
+// Consent-based: only stored when user enables BUZZ
+// ─────────────────────────────────────────────────────────────
+
+model BuzzMemory {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Structured personality facts learned from onboarding + conversations
+  key    String // e.g., "core_drive", "challenge", "energy_style", "archetype_slug"
+  value  String @db.Text // The fact value (free-text or enum string)
+  source String // "assessment" | "conversation" | "profile"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, key])
+  @@index([userId])
+}
+
+model BuzzConversation {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The assessment question that triggered this exchange (optional)
+  questionId String?
+
+  // "user" | "assistant"
+  role    String
+  content String @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, questionId])
+}
+
+model CityNetwork {
+  id       String @id @default(cuid())
+  cityName String @unique
+  cityCode String @unique // Airport code: "CLT", "ATL", "NYC"
+  state    String
+  country  String @default("US")
+  active   Boolean @default(false) // Only CLT active in MVP
+
+  latitude  Float?
+  longitude Float?
+
+  // Stats (computed)
+  userCount   Int @default(0)
+  cohortCount Int @default(0)
+
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────
+// BUZZ.AI — PSYCHOLOGICAL PROFILE
+// Generated by BUZZ from conversation + assessment signals.
+// Richer than DriveProfile — qualitative, behavioral, relational.
+// ─────────────────────────────────────────────────────────────
+
+model PsychProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Qualitative behavioral dimensions (BUZZ-generated)
+  ambitionType       String? // "relentless-builder" | "steady-climber" | "purpose-driven" | "creative-force"
+  energyStyle        String? // "high-output" | "selective-focus" | "cyclical" | "collaborative"
+  communicationStyle String? // "direct-concise" | "storyteller" | "listener-first" | "analytical"
+  accountabilityNeed String? // "external-pressure" | "self-directed" | "partner-based" | "system-driven"
+  emotionalDriver    String? // "achievement" | "belonging" | "mastery" | "impact" | "freedom"
+  riskProfile        String? // "calculated-risks" | "bold-bets" | "risk-averse" | "opportunistic"
+  socialPreference   String? // "deep-few" | "broad-many" | "selective-deep" | "crowd-energized"
+  conflictStyle      String? // "direct-confronter" | "harmony-keeper" | "analytical-resolver" | "avoider"
+
+  // Matching intelligence vectors
+  matchingNeeds   String[] // ["accountability", "inspiration", "challenge", "depth"]
+  redFlagsToAvoid String[] // ["passive-aggressive", "low-ambition", "all-talk"]
+  idealPeerTraits String[] // ["driven", "honest", "growth-focused", "action-oriented"]
+
+  // AI-generated narrative
+  summary         String  @db.Text // 3-4 sentence psychologically-informed summary
+  confidenceScore Float   @default(0) // 0-1: grows with more conversation signals
+
+  // Raw insights JSON for debugging and future retraining
+  rawInsights Json?
+
+  generatedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// BUZZ.AI — BEHAVIORAL SIGNALS
+// Tracks what users do (not just what they say).
+// Powers BUZZ learning and matching improvement over time.
+// Framed to users as: "BUZZ learns from how you communicate."
+// ─────────────────────────────────────────────────────────────
+
+model BehavioralSignal {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Signal classification
+  signalType String // "selected_reply" | "rejected_reply" | "onboarding_answer" | "chat_message" | "profile_update"
+  source     String // "buzz_reply_suggestion" | "onboarding_chat" | "general_chat" | "profile_form"
+
+  // The actual content
+  content  String @db.Text
+  weight   Float  @default(1.0) // signal importance (higher = more signal)
+  metadata Json?  // e.g., which suggestion was rejected, conversation context
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, signalType])
+}
+
+// ─────────────────────────────────────────────────────────────
+// COHORT CONVERSATIONS
+// In-app messaging between cohort members.
+// BUZZ uses this to generate reply suggestions.
+// ─────────────────────────────────────────────────────────────
+
+model ConversationThread {
+  id       String @id @default(cuid())
+  cohortId String
+  cohort   Cohort @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  title    String?
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cohortId])
+}
+
+model Message {
+  id       String             @id @default(cuid())
+  threadId String
+  thread   ConversationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderId String
+  sender   User               @relation("MessageSender", fields: [senderId], references: [id])
+
+  content      String  @db.Text
+  buzzAnalyzed Boolean @default(false) // has BUZZ processed this message for suggestions
+
+  createdAt DateTime @default(now())
+
+  @@index([threadId])
+  @@index([senderId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// 1-ON-1 MATCHING
+// Separate from cohort matching — high-compatibility peer pairing.
+// Powered by the same Drive + Psych scoring system.
+// ─────────────────────────────────────────────────────────────
+
+model OneOnOneMatch {
+  id      String @id @default(cuid())
+  userAId String
+  userBId String
+
+  status             OneOnOneMatchStatus @default(PENDING_REVIEW)
+  compatibilityScore Float               // 0-100 overall score
+
+  // Why they match — AI-generated narrative
+  matchReason     String? @db.Text  // "Your ambition levels align and your communication styles complement each other..."
+  frictionPoints  Json?             // ["Jordan needs external accountability; Alex is self-directed"]
+  suggestedPrompt String? @db.Text  // Suggested first message BUZZ generates
+
+  // Score breakdown (stored for admin review and match display)
+  scoreBreakdown Json? // { ambition: 0.92, discipline: 0.85, communication: 0.78, ... }
+
+  // Admin management
+  adminNotes String?   @db.Text
+  approvedBy String?   // admin userId
+  approvedAt DateTime?
+  activatedAt DateTime?
+  rejectedAt  DateTime?
+  rejectedBy  String?
+
+  // User feedback / rematch request
+  userARequestedRematch Boolean @default(false)
+  userBRequestedRematch Boolean @default(false)
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userA    User              @relation("OneOnOneMatchUserA", fields: [userAId], references: [id])
+  userB    User              @relation("OneOnOneMatchUserB", fields: [userBId], references: [id])
+  messages OneOnOneMessage[]
+
+  @@index([userAId])
+  @@index([userBId])
+  @@index([status])
+}
+
+model OneOnOneMessage {
+  id      String        @id @default(cuid())
+  matchId String
+  match   OneOnOneMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+
+  content      String  @db.Text
+  buzzAnalyzed Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([matchId])
+  @@index([senderId])
+}
