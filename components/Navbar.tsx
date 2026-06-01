@@ -21,23 +21,29 @@ export function Navbar() {
   const { isSignedIn, isLoaded }  = useUser()
   const pathname = usePathname()
 
-  // App pages have their own dedicated layouts — don't render Navbar there
+  // App pages have their own dedicated layouts — don't render Navbar there.
+  // NOTE: isAppPage is computed BEFORE hooks so we can reference it inside
+  // useEffect, but the early return MUST come AFTER all hook calls to satisfy
+  // React's Rules of Hooks (hooks must be called unconditionally every render).
   const isAppPage =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/onboarding") ||
     pathname.startsWith("/admin")
 
-  if (isAppPage) return null
-
+  // All hooks must be declared before any early return
   useEffect(() => {
+    if (isAppPage) return
     const onScroll = () => setScrolled(window.scrollY > 24)
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
-  }, [])
+  }, [isAppPage])
 
   useEffect(() => {
     setMenuOpen(false)
   }, [pathname])
+
+  // Early return AFTER all hooks — React Rules of Hooks compliant
+  if (isAppPage) return null
 
   return (
     <nav
