@@ -7,12 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  // directUrl removed: port 5432 is blocked on residential ISPs.
-  // DATABASE_URL uses the Supabase transaction pooler (port 6543, pgbouncer=true)
-  // which works for both runtime queries AND `prisma db push` in simple-query mode.
-  // Re-add directUrl on Vercel (session pooler URL, port 5432 is open from cloud IPs).
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")  // transaction pooler — port 6543, pgbouncer=true — runtime queries
+  directUrl = env("DIRECT_URL")    // direct connection — port 5432 — prisma db push / migrations
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -108,6 +105,12 @@ model User {
   futureCity     String? // Target city for relocation
   moveTimeline   String? // "3 months", "6 months", "1 year", "exploring"
   openToRelocate Boolean @default(false)
+
+  // Partner / referral tracking
+  partnerSource      String?   // e.g., "cypg", "podcast", "nba"
+  partnerCode        String?   // specific sub-code if partner has multiple campaigns
+  partnerJoinedAt    DateTime? // when the partner attribution was first recorded
+  partnerBenefitActive Boolean @default(false) // true = partner benefit currently applied
 
   // Relations
   profile        Profile?

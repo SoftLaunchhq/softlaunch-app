@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { PendingCohortState } from "@/components/dashboard/PendingCohortState"
 import { CohortView } from "@/components/dashboard/CohortView"
 import { UpgradePrompt } from "@/components/dashboard/UpgradePrompt"
+import { DbErrorPrompt } from "@/components/dashboard/DbErrorPrompt"
 import { CalendarDays, CreditCard, UsersRound } from "lucide-react"
 
 // ─────────────────────────────────────────────────────────────
@@ -71,7 +72,7 @@ function isConnectionError(err: unknown): boolean {
   // Prisma error codes: P1000=auth, P1001=unreachable, P1017=closed
   if (e.code === "P1000" || e.code === "P1001" || e.code === "P1017") return true
   if (e.name === "PrismaClientInitializationError") return true
-  const msg: string = (e.message as string) ?? ""
+  const msg: string = String((e.message as string) ?? "")
   return (
     msg.includes("ECONNREFUSED") ||
     msg.includes("ETIMEDOUT") ||
@@ -81,25 +82,38 @@ function isConnectionError(err: unknown): boolean {
     msg.includes("Environment variable not found: DATABASE_URL") ||
     msg.includes("Authentication failed against database server") ||
     msg.includes("password authentication failed") ||
-    (msg.includes("credentials") && msg.includes("not valid"))
+    (msg.includes("credentials") && msg.includes("not valid")) ||
+    // ── Supabase pgbouncer / pooler errors ───────────────────
+    // These are returned when the project is paused, the tenant isn't found,
+    // or the pooler rejects the session before the DB layer is reached.
+    msg.includes("Tenant or user not found") ||
+    msg.includes("tenant_not_found") ||
+    msg.includes("Max client connections reached") ||
+    msg.includes("remaining connection slots are reserved") ||
+    // Any Postgres FATAL / ERROR that comes back over the pooler
+    msg.includes("FATAL:") ||
+    msg.includes("ERROR:  terminating connection") ||
+    // SSL / TLS failures on cloud connections
+    msg.includes("SSL connection error") ||
+    msg.includes("SSL SYSCALL error")
   )
 }
 
 async function getDashboardData(clerkId: string): Promise<DashboardResult> {
   // ── Safe dev-only log — shows config state without exposing secrets ──
   if (process.env.NODE_ENV === "development") {
-    const url = process.env.DATABASE_URL
+    const url = process.env.DATABASE_URL ?? ""
+    let urlHost = "not set"
+    try { urlHost = url ? new URL(url).hostname : "not set" } catch { urlHost = "unparseable" }
     console.log("[DB CHECK]", {
       hasDatabaseUrl: Boolean(url),
-      hasDirectUrl:   Boolean(process.env.DIRECT_URL),
+      urlHost,
       urlLooksPlaceholder: Boolean(
-        url?.includes("user:password") ||
-        url?.includes("[PASSWORD]") ||
-        url?.includes("YOUR_PASSWORD")
+        url.includes("user:password") ||
+        url.includes("[PASSWORD]") ||
+        url.includes("YOUR_PASSWORD") ||
+        url.includes("replace_with")
       ),
-      urlHost: url
-        ? (() => { try { return new URL(url).hostname } catch { return "unparseable" } })()
-        : null,
     })
   }
 
@@ -341,118 +355,4 @@ function getGreeting(): string {
   return "Good evening"
 }
 
-/** Shown only for genuine DB connectivity or auth failures */
-function DbErrorPrompt({ message }: { message: string }) {
-  // ── ONLY flag placeholder when the URL itself contains placeholder text ──
-  // Never confuse "server unreachable" with "env var not configured" — they
-  // are completely different problems and get different fix instructions.
-  const isPlaceholder =
-    message.includes("postgresql://user:password") ||
-    message.includes("[PASSWORD]") ||
-    message.includes("YOUR_PASSWORD") ||
-    message.includes("Environment variable not found: DATABASE_URL")
-
-  const isAuthFailure =
-    message.includes("Authentication failed") ||
-    message.includes("password authentication failed") ||
-    (message.includes("credentials") && message.includes("not valid"))
-
-  // Server is healthy but we can't reach it — almost always means the
-  // Supabase free-tier project is paused (pauses after ~1 week of inactivity).
-  const isUnreachable =
-    !isPlaceholder &&
-    !isAuthFailure &&
-    (message.includes("Can't reach database server") ||
-      message.includes("ECONNREFUSED") ||
-      message.includes("ETIMEDOUT") ||
-      message.includes("connect timeout"))
-
-  const title = isPlaceholder
-    ? "Database not connected"
-    : isAuthFailure
-    ? "Wrong database password"
-    : isUnreachable
-    ? "Database server unreachable"
-    : "Database error"
-
-  const subtitle = isPlaceholder
-    ? "DATABASE_URL is missing or still contains placeholder values in .env.local."
-    : isAuthFailure
-    ? "The database is reachable but rejected the credentials. The password in DATABASE_URL is incorrect."
-    : isUnreachable
-    ? "Your Supabase project is not responding. If you're on the free tier, it may be paused."
-    : "The database returned an unexpected error."
-
-  return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
-      <div className="neon-panel max-w-lg p-8">
-        <div className="mb-4 text-4xl">
-          {isAuthFailure ? "🔑" : isUnreachable ? "💤" : "🗄️"}
-        </div>
-        <h2 className="font-display mb-3 text-2xl font-bold text-brand-text">{title}</h2>
-        <p className="mb-4 text-sm leading-relaxed text-brand-text-muted">{subtitle}</p>
-
-        {/* ── Placeholder env fix ── */}
-        {isPlaceholder && (
-          <div className="rounded-xl border border-brand-border bg-brand-bg/60 p-4 text-left text-sm">
-            <p className="mb-2 font-semibold text-brand-text-subtle uppercase tracking-wider text-xs">
-              Fix in .env.local
-            </p>
-            <ol className="space-y-1.5 text-brand-text-muted">
-              <li>1. Open <strong className="text-cyan-300">Supabase Dashboard → Settings → Database</strong></li>
-              <li>2. Copy the <em>Session mode</em> connection string (port 5432)</li>
-              <li>3. Paste as both <code className="rounded bg-brand-surface px-1 text-cyan-200">DATABASE_URL</code> and <code className="rounded bg-brand-surface px-1 text-cyan-200">DIRECT_URL</code></li>
-              <li>4. Restart: <code className="rounded bg-brand-surface px-1 text-cyan-200">npm run dev</code></li>
-            </ol>
-          </div>
-        )}
-
-        {/* ── Auth failure fix ── */}
-        {isAuthFailure && (
-          <div className="rounded-xl border border-brand-border bg-brand-bg/60 p-4 text-left text-sm">
-            <p className="mb-2 font-semibold text-brand-text-subtle uppercase tracking-wider text-xs">
-              Fix in .env.local
-            </p>
-            <ol className="space-y-1.5 text-brand-text-muted">
-              <li>1. Open <strong className="text-cyan-300">Supabase Dashboard → Settings → Database</strong></li>
-              <li>2. Reset or verify your database password</li>
-              <li>3. Copy the full connection string — Supabase pre-encodes special characters</li>
-              <li>4. Update <code className="rounded bg-brand-surface px-1 text-cyan-200">DATABASE_URL</code> and <code className="rounded bg-brand-surface px-1 text-cyan-200">DIRECT_URL</code></li>
-              <li>5. Restart: <code className="rounded bg-brand-surface px-1 text-cyan-200">npm run dev</code></li>
-            </ol>
-            <p className="mt-3 text-xs text-amber-300/80">
-              ⚠ If your password contains special characters (#, @, !, etc.), always copy the string
-              directly from Supabase — it pre-encodes the password for you.
-            </p>
-          </div>
-        )}
-
-        {/* ── Server unreachable — most likely Supabase paused ── */}
-        {isUnreachable && (
-          <div className="rounded-xl border border-brand-border bg-brand-bg/60 p-4 text-left text-sm">
-            <p className="mb-2 font-semibold text-brand-text-subtle uppercase tracking-wider text-xs">
-              How to fix
-            </p>
-            <ol className="space-y-1.5 text-brand-text-muted">
-              <li>1. Go to <strong className="text-cyan-300">supabase.com/dashboard</strong></li>
-              <li>2. Open your project — if it says <strong className="text-cyan-300">Paused</strong>, click <strong className="text-cyan-300">Restore project</strong></li>
-              <li>3. Wait ~30 seconds for it to spin up</li>
-              <li>4. Refresh this page</li>
-            </ol>
-            <p className="mt-3 text-xs text-amber-300/80">
-              ⚠ Free-tier Supabase projects pause automatically after ~1 week of inactivity.
-              Your DATABASE_URL is fine — the server just needs to wake up.
-            </p>
-          </div>
-        )}
-
-        {/* ── Unknown error — show raw message ── */}
-        {!isPlaceholder && !isAuthFailure && !isUnreachable && (
-          <div className="rounded-xl border border-brand-error/30 bg-brand-error/10 p-4 text-left">
-            <p className="text-xs font-mono text-brand-error break-all">{message}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
+// DbErrorPrompt is a client component — see components/dashboard/DbErrorPrompt.tsx

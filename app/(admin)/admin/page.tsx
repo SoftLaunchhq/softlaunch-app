@@ -1,7 +1,8 @@
 import { db } from "@/lib/db"
 import { formatCurrency, formatRelativeDate } from "@/lib/utils"
+import { PARTNERS } from "@/lib/partners"
 import Link from "next/link"
-import { AlertCircle, Clock, TrendingUp, Users, Group, CreditCard, CheckCircle2 } from "lucide-react"
+import { AlertCircle, Clock, TrendingUp, Users, Group, CreditCard, CheckCircle2, Handshake } from "lucide-react"
 
 async function getAdminStats() {
   const [
@@ -13,6 +14,7 @@ async function getAdminStats() {
     activeSubscriptions,
     recentFeedback,
     longWaitUsers,
+    partnerCounts,
   ] = await Promise.all([
     db.user.count({ where: { onboardingComplete: true } }),
     db.user.count({
@@ -44,6 +46,12 @@ async function getAdminStats() {
       orderBy: { createdAt: "asc" },
       take: 10,
     }),
+    // Partner analytics — select partnerSource for all attributed users
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (db.user.findMany as any)({
+      where: { partnerSource: { not: null } },
+      select: { partnerSource: true },
+    }) as Promise<{ partnerSource: string | null }[]>,
   ])
 
   // MRR calculation
@@ -52,6 +60,20 @@ async function getAdminStats() {
     select: { amount: true },
   })
   const mrr = subscriptions.reduce((sum, s) => sum + (s.amount || 0), 0)
+
+  // Active benefits count
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const activeBenefits = await (db.user.count as any)({ where: { partnerBenefitActive: true } }) as number
+
+  // Group partnerCounts by source in JS
+  const partnerCountMap: Record<string, number> = {}
+  for (const row of partnerCounts) {
+    const src = row.partnerSource ?? "unknown"
+    partnerCountMap[src] = (partnerCountMap[src] ?? 0) + 1
+  }
+  const partnerBreakdown = Object.entries(partnerCountMap)
+    .map(([source, count]) => ({ source, count }))
+    .sort((a, b) => b.count - a.count)
 
   return {
     totalUsers,
@@ -63,6 +85,8 @@ async function getAdminStats() {
     mrr,
     recentFeedback,
     longWaitUsers,
+    partnerBreakdown,
+    activeBenefits,
   }
 }
 
@@ -256,6 +280,72 @@ export default async function AdminOverviewPage() {
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* ── Partner Analytics ─────────────────────────────── */}
+      <div className="rounded-xl border border-brand-border bg-brand-surface p-6">
+        <h2 className="font-semibold text-brand-text mb-1 flex items-center gap-2">
+          <Handshake className="w-4 h-4 text-brand-primary" />
+          Partner Referrals
+        </h2>
+        <p className="text-xs text-brand-text-subtle mb-5">
+          Users attributed via partner landing pages · {stats.activeBenefits} active benefit{stats.activeBenefits !== 1 ? "s" : ""}
+        </p>
+
+        {stats.partnerBreakdown.length === 0 ? (
+          <p className="text-sm text-brand-text-subtle text-center py-6">
+            No partner referrals recorded yet.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {stats.partnerBreakdown.map((row) => {
+              const slug = row.source
+              const partner = PARTNERS[slug]
+              const count = row.count
+              const totalPartnerUsers = stats.partnerBreakdown.reduce(
+                (s, r) => s + r.count,
+                0
+              )
+              const pct = totalPartnerUsers > 0 ? Math.round((count / totalPartnerUsers) * 100) : 0
+
+              return (
+                <div key={slug} className="flex items-center gap-4">
+                  <div className="w-28 flex-shrink-0">
+                    <p className="text-sm font-medium text-brand-text truncate">
+                      {partner?.name ?? slug}
+                    </p>
+                    <p className="text-xs text-brand-text-subtle">{partner?.landingPath ?? `/${slug}`}</p>
+                  </div>
+                  <div className="flex-1 h-2 rounded-full bg-brand-bg overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-brand-primary transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <div className="w-16 text-right">
+                    <span className="text-sm font-semibold text-brand-text">{count}</span>
+                    <span className="text-xs text-brand-text-subtle ml-1">users</span>
+                  </div>
+                  <div className="w-10 text-right text-xs text-brand-text-subtle">{pct}%</div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Quick link to /cypg */}
+        <div className="mt-5 pt-4 border-t border-brand-border flex items-center justify-between">
+          <p className="text-xs text-brand-text-subtle">
+            Share <span className="font-mono text-brand-text">softlaunchhq.com/cypg</span> with CYPG audience
+          </p>
+          <Link
+            href="/cypg"
+            target="_blank"
+            className="text-xs text-brand-primary hover:underline font-medium"
+          >
+            Preview page →
+          </Link>
         </div>
       </div>
 

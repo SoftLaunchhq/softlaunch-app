@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { UserButton } from "@clerk/nextjs"
 import { DashboardNav } from "@/components/dashboard/DashboardNav"
+import { PartnerTrackingTrigger } from "@/components/PartnerTrackingTrigger"
 import { db } from "@/lib/db"
 
 export default async function DashboardLayout({
@@ -63,6 +64,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-brand-bg">
+      {/* Fires partner attribution when user first lands after sign-up */}
+      <PartnerTrackingTrigger />
       <div className="mx-auto flex w-full max-w-[1440px] gap-0 md:gap-5 p-0 md:p-5">
 
         {/* ── Sidebar ── */}

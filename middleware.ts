@@ -15,6 +15,8 @@ const isPublicRoute = createRouteMatcher([
   "/pricing(.*)",
   "/faq(.*)",
   "/waitlist(.*)",
+  // Partner landing pages
+  "/cypg(.*)",
   // Legal
   "/about(.*)",
   "/privacy(.*)",
