@@ -54,7 +54,7 @@ export function WaitlistForm({ variant = "hero" }: WaitlistFormProps) {
         </div>
         <p className="text-base font-semibold text-brand-text">You&apos;re in.</p>
         <p className="text-sm text-brand-text-muted text-center max-w-xs">
-          Check your inbox — we&apos;ll be in touch within 48 hours with next steps.
+          Check your inbox. We&apos;ll be in touch within 48 hours with next steps.
         </p>
       </motion.div>
     )

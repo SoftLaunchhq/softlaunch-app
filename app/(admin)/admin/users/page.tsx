@@ -50,10 +50,10 @@ function statusBadge(user: Awaited<ReturnType<typeof getUsers>>[number]) {
     return { label: "In Queue", color: "text-brand-primary bg-brand-primary/10 border-brand-primary/20" }
   }
   if (membership.status === "PENDING") {
-    return { label: "Matched – Pending", color: "text-brand-accent bg-brand-accent/10 border-brand-accent/20" }
+    return { label: "Match Pending", color: "text-brand-accent bg-brand-accent/10 border-brand-accent/20" }
   }
   if (membership.status === "ACTIVE") {
-    return { label: `Active – Wk ${membership.cohort.currentWeek}`, color: "text-emerald-200 bg-emerald-300/10 border-emerald-300/20" }
+    return { label: `Active, Wk ${membership.cohort.currentWeek}`, color: "text-emerald-200 bg-emerald-300/10 border-emerald-300/20" }
   }
   if (membership.status === "CHURNED") {
     return { label: "Churned", color: "text-red-300 bg-red-400/10 border-red-400/20" }

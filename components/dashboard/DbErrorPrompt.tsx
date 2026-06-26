@@ -68,14 +68,14 @@ export function DbErrorPrompt({ message }: Props) {
         emoji: "💤",
         title: "Database temporarily offline",
         subtitle:
-          "Your Supabase project appears to be paused. Free-tier projects sleep after ~1 week of inactivity. Restore it from your Supabase dashboard — this page will work again in about 30 seconds.",
+          "Your Supabase project appears to be paused. Free-tier projects sleep after ~1 week of inactivity. Restore it from your Supabase dashboard. This page will work again in about 30 seconds.",
       }
     : isPoolExhausted
     ? {
         emoji: "⏳",
         title: "Database at capacity",
         subtitle:
-          "Too many concurrent connections right now. This resolves automatically — please try again in 30 seconds.",
+          "Too many concurrent connections right now. This resolves automatically. Please try again in 30 seconds.",
       }
     : isUnreachable
     ? {

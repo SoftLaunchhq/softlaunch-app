@@ -16,7 +16,7 @@ const PERKS = [
   {
     icon: Target,
     title: "Priority Matching",
-    desc: "Jump the queue — CYPG members get matched to their first cohort in under 48 hours.",
+    desc: "Jump the queue. CYPG members get matched to their first cohort in under 48 hours.",
   },
   {
     icon: Users,
@@ -32,7 +32,7 @@ const PERKS = [
 
 const SOCIAL_PROOF = [
   { quote: "First time I've had people in my corner who actually hold me to my word.", name: "Marcus T.", city: "Charlotte, NC" },
-  { quote: "SoftLaunch changed how I think about accountability. It's not pressure — it's pull.", name: "Jordan R.", city: "Charlotte, NC" },
+  { quote: "SoftLaunch changed how I think about accountability. It's not pressure. It's pull.", name: "Jordan R.", city: "Charlotte, NC" },
   { quote: "Week 1 and I already have three people who text me when I go quiet.", name: "Priya S.", city: "Charlotte, NC" },
 ]
 
@@ -102,7 +102,7 @@ export default function CYPGLandingPage() {
 
         <p className="text-lg text-brand-text-muted leading-relaxed max-w-2xl mx-auto mb-10">
           SoftLaunch matches you into a tight-knit group of 4 driven people for 4 weeks of
-          real accountability — no fluff, no corporate workshops.
+          real accountability. No fluff, no corporate workshops.
           CYPG members get priority access and their first week free.
         </p>
 
@@ -155,7 +155,7 @@ export default function CYPGLandingPage() {
             {[
               { step: "01", label: "8-min Drive Profile", desc: "Tell BUZZ who you are and what actually drives you." },
               { step: "02", label: "48-hr Matching", desc: "Algorithm pairs you with 3 people who complement your style." },
-              { step: "03", label: "Week 1 — Free", desc: "Meet your group. Set your 4-week goal. No card, no pressure." },
+              { step: "03", label: "Week 1: Free", desc: "Meet your group. Set your 4-week goal. No card, no pressure." },
               { step: "04", label: "4 Weeks of Pull", desc: "Weekly check-ins, real talk, and people who hold you accountable." },
             ].map((s) => (
               <div key={s.step}>
@@ -198,7 +198,7 @@ export default function CYPGLandingPage() {
           Ready to find your people?
         </h2>
         <p className="text-brand-text-muted mb-8 leading-relaxed">
-          Your CYPG connection gets you straight to the front — priority matching, no waitlist, first week on us.
+          Your CYPG connection gets you straight to the front. Priority matching, no waitlist, first week on us.
         </p>
 
         <div className="flex flex-col gap-3 items-center">
@@ -214,7 +214,7 @@ export default function CYPGLandingPage() {
             {[
               "No credit card for Week 1",
               "Priority matching within 48 hours",
-              "Cancel anytime — no lock-in",
+              "Cancel anytime. No lock-in.",
             ].map((item) => (
               <div key={item} className="flex items-center gap-2 text-sm text-brand-text-muted">
                 <CheckCircle2 className="w-3.5 h-3.5 text-brand-primary flex-shrink-0" />

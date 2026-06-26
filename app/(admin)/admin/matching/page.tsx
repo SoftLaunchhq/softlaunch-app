@@ -117,7 +117,7 @@ export default function AdminMatchingPage() {
           <Users className="w-5 h-5 text-brand-primary" />
           <p className="text-sm text-brand-text-muted">
             <span className="text-brand-text font-semibold">{poolSize} users</span> in
-            matching pool — {suggestions.length} cohort suggestion{suggestions.length !== 1 ? "s" : ""} generated
+            matching pool. {suggestions.length} cohort suggestion{suggestions.length !== 1 ? "s" : ""} generated.
           </p>
         </div>
       )}

@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
             sendFounderNotification(email, city, source),
           ])
           return NextResponse.json(
-            { success: true, message: "You're on the list — we'll be in touch." },
+            { success: true, message: "You're on the list. We'll be in touch." },
             { status: 200 }
           )
         }
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     ])
 
     return NextResponse.json(
-      { success: true, message: "You're on the list — we'll be in touch." },
+      { success: true, message: "You're on the list. We'll be in touch." },
       { status: 200 }
     )
   } catch (error: unknown) {
@@ -170,10 +170,10 @@ async function sendUserConfirmation(toEmail: string): Promise<void> {
                 You're on the waitlist. ✓
               </h1>
               <p style="margin:0 0 20px;font-size:15px;color:#4B5563;line-height:1.6;">
-                We've got your spot. We review applications personally and reach out in batches — so you'll hear from us when your cohort is being formed.
+                We've got your spot. We review applications personally and reach out in batches, so you'll hear from us when your cohort is being formed.
               </p>
               <p style="margin:0 0 20px;font-size:15px;color:#4B5563;line-height:1.6;">
-                In the meantime, SoftLaunch is for people who are building something and want to be surrounded by others doing the same. If that's you — you're exactly who we built this for.
+                In the meantime, SoftLaunch is for people who are building something and want to be surrounded by others doing the same. If that's you, you're exactly who we built this for.
               </p>
               <p style="margin:0 0 32px;font-size:15px;color:#4B5563;line-height:1.6;">
                 — The SoftLaunch team
@@ -191,7 +191,7 @@ async function sendUserConfirmation(toEmail: string): Promise<void> {
             <td style="padding:20px 40px;border-top:1px solid rgba(0,0,0,0.06);">
               <p style="margin:0;font-size:11px;color:#9CA3AF;line-height:1.5;">
                 You're receiving this because you signed up at softlaunchhq.com.
-                We respect your inbox — expect to hear from us only when it matters.
+                We respect your inbox. Expect to hear from us only when it matters.
               </p>
             </td>
           </tr>

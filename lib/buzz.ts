@@ -391,7 +391,7 @@ export const BUZZ_ONBOARDING_QUESTIONS = [
     id: "ob1",
     topic: "current_work",
     prompt: "What are you actually working on right now?",
-    subtext: "Be specific — not the elevator pitch, the real thing.",
+    subtext: "Be specific. Not the elevator pitch, the real thing.",
     extractKey: "current_project",
   },
   {
@@ -418,7 +418,7 @@ export const BUZZ_ONBOARDING_QUESTIONS = [
   {
     id: "ob5",
     topic: "ideal_peer",
-    prompt: "Describe someone — professionally or personally — who brought out the best in you.",
+    prompt: "Describe someone, professionally or personally, who brought out the best in you.",
     subtext: "What specifically did they do?",
     extractKey: "ideal_peer_traits",
   },
@@ -447,7 +447,7 @@ export const BUZZ_ONBOARDING_QUESTIONS = [
     id: "ob9",
     topic: "social_energy",
     prompt: "Are you more energized by people who challenge your thinking or people who validate your direction?",
-    subtext: "Be honest — both are useful. This is about what you actually need.",
+    subtext: "Be honest. Both are useful. This is about what you actually need.",
     extractKey: "social_energy_type",
   },
   {
@@ -461,13 +461,13 @@ export const BUZZ_ONBOARDING_QUESTIONS = [
     id: "ob11",
     topic: "best_worst",
     prompt: "When you're at your best, what does that look like? And at your worst?",
-    subtext: "Be real — the contrast is what's useful.",
+    subtext: "Be real. The contrast is what's useful.",
     extractKey: "performance_range",
   },
   {
     id: "ob12",
     topic: "motivation",
-    prompt: "Why are you joining SoftLaunch right now — specifically?",
+    prompt: "Why are you joining SoftLaunch right now, specifically?",
     subtext: "What's the real reason behind it?",
     extractKey: "join_motivation",
   },
@@ -545,7 +545,7 @@ export function getReplyStarters(questionId: string, answerKey: string): string[
       personal: ["Big year for that.", "Still figuring out what that means.", "More than I expected."],
     },
     q2: {
-      output:        ["Honestly, it's been a while.", "Last week, weirdly.", "Not recently — that's the problem."],
+      output:        ["Honestly, it's been a while.", "Last week, weirdly.", "Not recently. That's the problem."],
       deep_convo:    ["Not as often as I'd like.", "Once in a while.", "That's rare for me."],
       physical:      ["When I actually stick to it.", "Not lately.", "It's when I'm most myself."],
       creative_flow: ["Rare, but it's the best feeling.", "More recently.", "I'm chasing it."],
@@ -597,7 +597,7 @@ export const BUZZ_ENGAGEMENT_PROMPTS = [
   "What would you do this week if you had no one to impress?",
   "What's something you've been telling yourself for 6+ months that you haven't done?",
   "When was the last time you changed your mind about something important?",
-  "What does your best version of this week look like — realistically?",
+  "What does your best version of this week look like, realistically?",
   "Is there something you know you should stop doing but haven't? What's actually in the way?",
 ]
 

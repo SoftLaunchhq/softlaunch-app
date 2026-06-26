@@ -49,23 +49,23 @@ export const FAQ_PAGE_ITEMS: FAQItem[] = [
 export const FAQ_ACCORDION_ITEMS: FAQItem[] = [
   {
     q: "How is SoftLaunch different from LinkedIn or a networking app?",
-    a: "LinkedIn is a broadcast platform — you post, you hope. SoftLaunch is a matching platform. We study how you think, what you're building, and where you're at in life, then connect you with people who complement your specific ambition. No cold DMs. No follower counts. Just real people who get it.",
+    a: "LinkedIn is a broadcast platform. You post, you hope. SoftLaunch is a matching platform. We study how you think, what you're building, and where you're at in life, then connect you with people who complement your specific ambition. No cold DMs. No follower counts. Just real people who get it.",
   },
   {
     q: "What's a \"cohort\" and how does it work?",
-    a: "Every week, we place you in a small group of similarly ambitious people. You get a shared prompt — a question, a challenge, something worth talking about. You respond. You read theirs. Genuine conversation starts from there.",
+    a: "Every week, we place you in a small group of similarly ambitious people. You get a shared prompt: a question, a challenge, something worth talking about. You respond. You read theirs. Genuine conversation starts from there.",
   },
   {
     q: "What if I don't have time for another thing?",
-    a: "We built this for people who already have too much on their plate. The weekly commitment is under 20 minutes. One prompt. A few responses. The relationships that come out of it do not feel like obligations — they feel like air.",
+    a: "We built this for people who already have too much on their plate. The weekly commitment is under 20 minutes. One prompt. A few responses. The relationships that come out of it do not feel like obligations. They feel like air.",
   },
   {
     q: "Is this only for entrepreneurs?",
-    a: "No. SoftLaunch is for anyone who is building something — a company, a career, a creative practice, a second act. If ambition is a core part of who you are, you belong here.",
+    a: "No. SoftLaunch is for anyone who is building something: a company, a career, a creative practice, a second act. If ambition is a core part of who you are, you belong here.",
   },
   {
     q: "How does the matching actually work?",
-    a: "We use your Drive Profile — a nuanced picture of your ambition style, values, growth edges, and life context — to match you with people who will genuinely challenge and support you. Not just \"also in tech.\" Real compatibility. Thought through.",
+    a: "We use your Drive Profile, a nuanced picture of your ambition style, values, growth edges, and life context, to match you with people who will genuinely challenge and support you. Not just \"also in tech.\" Real compatibility. Thought through.",
   },
   {
     q: "What does it cost?",
@@ -77,6 +77,6 @@ export const FAQ_ACCORDION_ITEMS: FAQItem[] = [
   },
   {
     q: "When does it launch?",
-    a: "We're opening to founding members soon — a small group who will shape what SoftLaunch becomes. Join the waitlist to be first in.",
+    a: "We're opening to founding members soon. A small group who will shape what SoftLaunch becomes. Join the waitlist to be first in.",
   },
 ]

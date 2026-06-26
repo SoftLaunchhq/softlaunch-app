@@ -271,35 +271,35 @@ export function generateMatchReason(
 
   // Ambition alignment
   if (breakdown.ambition > 0.80) {
-    lines.push(`${nameB} operates at your ambition level — neither of you will need to slow down for the other.`)
+    lines.push(`${nameB} operates at your ambition level. Neither of you will need to slow down for the other.`)
   } else if (breakdown.ambition > 0.65) {
-    lines.push(`Your ambition and ${nameB}'s are well-matched — enough similarity to understand each other, enough difference to push.`)
+    lines.push(`Your ambition and ${nameB}'s are well-matched. Enough similarity to understand each other, enough difference to push.`)
   }
 
   // Communication
   if (breakdown.communicationStyle > 0.85) {
-    lines.push(`Your communication styles are highly compatible — expect conversations that feel natural and direct.`)
+    lines.push(`Your communication styles are highly compatible. Expect conversations that feel natural and direct.`)
   } else if (breakdown.communicationStyle > 0.70) {
-    lines.push(`Your communication approaches complement each other — ${nameB} tends to ${pb?.communicationStyle?.replace(/-/g, " ")} while you lean ${pa?.communicationStyle?.replace(/-/g, " ")}.`)
+    lines.push(`Your communication approaches complement each other. ${nameB} tends to ${pb?.communicationStyle?.replace(/-/g, " ")} while you lean ${pa?.communicationStyle?.replace(/-/g, " ")}.`)
   }
 
   // Accountability
   if (breakdown.accountabilityFit > 0.85) {
-    lines.push(`Your accountability styles are a strong fit — one pushes, one pulls, and both of you benefit.`)
+    lines.push(`Your accountability styles are a strong fit. One pushes, one pulls, and both of you benefit.`)
   }
 
   // Emotional driver
   if (pa?.emotionalDriver && pb?.emotionalDriver) {
     if (pa.emotionalDriver === pb.emotionalDriver) {
-      lines.push(`You share a core drive around ${pa.emotionalDriver.replace(/-/g, " ")} — that shared hunger creates lasting connection.`)
+      lines.push(`You share a core drive around ${pa.emotionalDriver.replace(/-/g, " ")}. That shared hunger creates lasting connection.`)
     } else {
-      lines.push(`${nameB} is motivated by ${pb.emotionalDriver.replace(/-/g, " ")} while you're driven by ${pa.emotionalDriver.replace(/-/g, " ")} — different fuel, same engine.`)
+      lines.push(`${nameB} is motivated by ${pb.emotionalDriver.replace(/-/g, " ")} while you're driven by ${pa.emotionalDriver.replace(/-/g, " ")}. Different fuel, same engine.`)
     }
   }
 
   // Discipline
   if (breakdown.discipline > 0.80) {
-    lines.push(`Your discipline levels align — neither of you will tolerate excuses from the other.`)
+    lines.push(`Your discipline levels align. Neither of you will tolerate excuses from the other.`)
   }
 
   // Fallback if few signals
@@ -324,7 +324,7 @@ export function generateFrictionPoints(
   const friction: string[] = []
 
   if (breakdown.communicationStyle < 0.65) {
-    friction.push(`Communication styles differ — ${nameB} may need more context than you naturally give, or vice versa. Name this early.`)
+    friction.push(`Communication styles differ. ${nameB} may need more context than you naturally give, or vice versa. Name this early.`)
   }
 
   if (breakdown.ambition < 0.60) {
@@ -332,11 +332,11 @@ export function generateFrictionPoints(
   }
 
   if (breakdown.accountabilityFit < 0.65) {
-    friction.push(`Different accountability needs — agree on a structure for how you'll hold each other to commitments.`)
+    friction.push(`Different accountability needs. Agree on a structure for how you'll hold each other to commitments.`)
   }
 
   if (breakdown.energyCompatibility < 0.65) {
-    friction.push(`Energy styles differ (${pa?.energyStyle?.replace(/-/g, " ")} vs. ${pb?.energyStyle?.replace(/-/g, " ")}) — best to schedule touchpoints around peak times.`)
+    friction.push(`Energy styles differ (${pa?.energyStyle?.replace(/-/g, " ")} vs. ${pb?.energyStyle?.replace(/-/g, " ")}). Best to schedule touchpoints around peak times.`)
   }
 
   if (breakdown.redFlagAvoidance < 0.75) {
@@ -359,14 +359,14 @@ export function generateSuggestedPrompt(
 
   // Context-aware suggestion
   if (pa?.accountabilityNeed === "partner-based" || pb?.accountabilityNeed === "partner-based") {
-    return `Hey ${nameB} — I'm ${nameA}. I saw we're both matched here. I've been looking for a real accountability partner, not just someone to chat with. What's the one thing you're pushing hardest on right now?`
+    return `Hey ${nameB}, I'm ${nameA}. I saw we're both matched here. I've been looking for a real accountability partner, not just someone to chat with. What's the one thing you're pushing hardest on right now?`
   }
 
   if (pb?.ambitionType === "relentless-builder" || userB.driveProfile.ambition > 75) {
-    return `Hey ${nameB}, I'm ${nameA}. We got matched — I looked at your background and I'm genuinely curious about the work you're doing. What's the biggest thing you're trying to crack right now?`
+    return `Hey ${nameB}, I'm ${nameA}. We got matched. I looked at your background and I'm genuinely curious about the work you're doing. What's the biggest thing you're trying to crack right now?`
   }
 
-  return `Hey ${nameB} — I'm ${nameA}. SoftLaunch matched us based on our profiles and I think I can see why. I'd love to start with a simple question: what does a genuinely productive week look like for you right now?`
+  return `Hey ${nameB}, I'm ${nameA}. SoftLaunch matched us based on our profiles and I think I can see why. I'd love to start with a simple question: what does a genuinely productive week look like for you right now?`
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -399,13 +399,13 @@ export function suggestOneOnOneMatches(
 
     const warnings: string[] = []
     if (breakdown.finalScore < 55) {
-      warnings.push(`Low overall score (${breakdown.finalScore.toFixed(0)}) — consider finding more users before approving.`)
+      warnings.push(`Low overall score (${breakdown.finalScore.toFixed(0)}). Consider finding more users before approving.`)
     }
     if (breakdown.redFlagAvoidance < 0.75) {
-      warnings.push("Potential red flag overlap detected — review psychographic notes before approving.")
+      warnings.push("Potential red flag overlap detected. Review psychographic notes before approving.")
     }
     if (!targetUser.psychProfile || !candidate.psychProfile) {
-      warnings.push("One or both users have incomplete BUZZ profiles — score accuracy may be reduced.")
+      warnings.push("One or both users have incomplete BUZZ profiles. Score accuracy may be reduced.")
     }
 
     return {

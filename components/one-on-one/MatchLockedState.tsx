@@ -24,7 +24,7 @@ export function MatchLockedState() {
 
         {/* Body */}
         <p className="mt-3 text-sm leading-relaxed text-brand-text-muted">
-          BUZZ needs to understand how you think, communicate, and build before we can find someone who actually fits. This isn&apos;t a quiz — it&apos;s the foundation of everything.
+          BUZZ needs to understand how you think, communicate, and build before we can find someone who actually fits. This isn&apos;t a quiz. It&apos;s the foundation of everything.
         </p>
 
         {/* What BUZZ learns */}
@@ -32,7 +32,7 @@ export function MatchLockedState() {
           {[
             { icon: Brain,    text: "Your ambition type and energy style" },
             { icon: Sparkles, text: "How you communicate and process pressure" },
-            { icon: ArrowRight, text: "What you need in a peer — and what you don't" },
+            { icon: ArrowRight, text: "What you need in a peer and what you don't" },
           ].map(({ icon: Icon, text }) => (
             <div key={text} className="flex items-center gap-3 rounded-xl border border-brand-border/60 bg-brand-bg/40 px-4 py-3">
               <Icon className="h-4 w-4 flex-shrink-0 text-brand-primary" />

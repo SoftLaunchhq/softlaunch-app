@@ -71,7 +71,7 @@ export default async function BillingPage() {
               <p className="text-xs text-brand-text-subtle mt-0.5">
                 {isActive && sub?.amount
                   ? `${formatCurrency(sub.amount)}/month`
-                  : "Week 1 access — upgrade to continue"}
+                  : "Week 1 access. Upgrade to continue."}
               </p>
             </div>
           </div>
@@ -155,7 +155,7 @@ export default async function BillingPage() {
             <p className="font-semibold text-brand-text mb-1">SoftLaunch Pro · $29/month</p>
             <p className="text-sm text-brand-text-muted leading-relaxed">
               Full cohort access, weekly matched prompts, BUZZ AI thought partner, and everything we add next.
-              Cancel anytime — no questions asked.
+              Cancel anytime. No questions asked.
             </p>
           </div>
         </div>

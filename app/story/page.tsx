@@ -19,7 +19,7 @@ const TEAM = [
     name:  "Sana Ullah",
     title: "CTO & Co-Founder",
     image: "/team/sana.png",
-    bio:   "Sana built SoftLaunch end-to-end — the matching engine, the AI, the infrastructure. He's obsessed with the intersection of psychology and product, and with the question of what it really takes to match people in a way that lasts.",
+    bio:   "Sana built SoftLaunch end-to-end: the matching engine, the AI, the infrastructure. He's obsessed with the intersection of psychology and product, and with the question of what it really takes to match people in a way that lasts.",
   },
 ]
 
@@ -27,7 +27,7 @@ const TIMELINE = [
   {
     year:  "2019",
     title: "The thing we couldn't say out loud",
-    body:  "Mallika was running a company. By every external measure, things were going well. And she was the loneliest she'd ever been.\n\nNot lonely for company. She had a team, a partner, friends who loved her. Lonely in a specific, painful way — the loneliness of being the only person in the room who understood what was at stake. The only person who knew what she'd given up to be there.",
+    body:  "Mallika was running a company. By every external measure, things were going well. And she was the loneliest she'd ever been.\n\nNot lonely for company. She had a team, a partner, friends who loved her. Lonely in a specific, painful way. The loneliness of being the only person in the room who understood what was at stake. The only person who knew what she'd given up to be there.",
   },
   {
     year:  "2020",
@@ -37,7 +37,7 @@ const TIMELINE = [
   {
     year:  "2021",
     title: "We stopped looking and started building",
-    body:  "We spent a year talking to people like us. Founders, executives, creatives, researchers — people who were building things that mattered and feeling the cost of it. The loneliness came up in every single conversation. Every one.\n\nWe started asking: what would it actually take to fix this? Not a group chat. Not a conference. Something that actually matched people — the way a great introduction works, but at scale, and built for this specific kind of loneliness.",
+    body:  "We spent a year talking to people like us. Founders, executives, creatives, researchers. People who were building things that mattered and feeling the cost of it. The loneliness came up in every single conversation. Every one.\n\nWe started asking: what would it actually take to fix this? Not a group chat. Not a conference. Something that actually matched people the way a great introduction works, but at scale, and built for this specific kind of loneliness.",
   },
   {
     year:  "2022",
@@ -47,7 +47,7 @@ const TIMELINE = [
   {
     year:  "Now",
     title: "What we're building",
-    body:  "SoftLaunch is the thing we needed and couldn't find. A system for finding the people who get it — without having to perform for them first, without having to explain yourself from scratch, without having to settle for surface-level connection.\n\nWe're in early access. We're opening to founding members first. If you're reading this, you're exactly who we built this for.",
+    body:  "SoftLaunch is the thing we needed and couldn't find. A system for finding the people who get it. Without having to perform for them first, without having to explain yourself from scratch, without having to settle for surface-level connection.\n\nWe're in early access. We're opening to founding members first. If you're reading this, you're exactly who we built this for.",
   },
 ]
 
@@ -84,7 +84,7 @@ export default function StoryPage() {
             </span>
           </h1>
           <p className="text-lg text-brand-text-muted max-w-xl mx-auto leading-relaxed">
-            This is not a company founded on market research. It&apos;s a company founded on a feeling — and years of refusing to accept that the feeling was unfixable.
+            This is not a company founded on market research. It was built from a feeling and years of refusing to accept that the feeling was unfixable.
           </p>
         </div>
       </section>
@@ -185,7 +185,7 @@ export default function StoryPage() {
               },
               {
                 title: "Safety is a design requirement",
-                body: "Not an afterthought — every feature is built so you can show up fully, without performing or protecting yourself.",
+                body: "Not an afterthought. Every feature is built so you can show up fully, without performing or protecting yourself.",
               },
             ].map((v) => (
               <div key={v.title} className="rounded-xl border border-brand-border bg-brand-surface p-5">

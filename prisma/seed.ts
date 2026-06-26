@@ -172,7 +172,7 @@ async function main() {
           weekNumber: 1,
           title: "Week 1: Introductions",
           promptText:
-            "Share one thing you're currently building, working on, or trying to figure out — and why it matters to you.",
+            "Share one thing you're currently building, working on, or trying to figure out. And why it matters to you.",
           status: "ACTIVE",
           sentAt: new Date(),
         },

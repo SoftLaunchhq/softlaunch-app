@@ -10,7 +10,7 @@ const FEATURES = [
   { label: "Full conversation history & archive", included: true },
   { label: "Founder resources & community library", included: true },
   { label: "Early access to new features", included: true },
-  { label: "Cancel anytime — no contracts, no penalties", included: true },
+  { label: "Cancel anytime. No contracts, no penalties.", included: true },
 ]
 
 const COMPARE = [
@@ -52,7 +52,7 @@ export default function PricingPage() {
             </span>
           </h1>
           <p className="text-lg text-brand-text-muted max-w-xl mx-auto leading-relaxed">
-            One price. Everything included. First week free — always.
+            One price. Everything included. First week free. Always.
           </p>
         </div>
       </section>
@@ -68,7 +68,7 @@ export default function PricingPage() {
             <div className="p-8 sm:p-12">
               <div className="mb-8">
                 <div className="inline-flex items-center gap-2 rounded-full bg-brand-primary/10 border border-brand-primary/20 px-3 py-1 text-xs font-medium text-brand-primary mb-3">
-                  First week free — always
+                  First week free. Always.
                 </div>
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-display text-6xl font-bold text-brand-text">$29</span>

@@ -251,7 +251,7 @@ export async function handleStripeWebhook(event: Stripe.Event): Promise<void> {
           amount: sub.items.data[0].price.unit_amount ?? 0,
           status: "succeeded",
           cohortId: cohortId ?? null,
-          description: "SoftLaunch Pro subscription — Week 2 unlock",
+          description: "SoftLaunch Pro subscription. Week 2 unlock.",
         },
       })
 

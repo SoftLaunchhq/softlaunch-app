@@ -57,7 +57,7 @@ export default function FAQPage() {
             Still have a question?
           </h2>
           <p className="text-sm max-w-md text-brand-text-muted">
-            We actually read every message. Reach out and a real person will respond — not a bot, not a template.
+            We actually read every message. Reach out and a real person will respond. Not a bot, not a template.
           </p>
           <a
             href="mailto:hello@softlaunch.co"
@@ -75,7 +75,7 @@ export default function FAQPage() {
             Ready to find your people?
           </h2>
           <p className="text-sm text-brand-text-muted">
-            Join the waitlist — founding members get priority matching and lifetime pricing.
+            Join the waitlist. Founding members get priority matching and lifetime pricing.
           </p>
           <WaitlistForm variant="section" />
         </div>

@@ -204,14 +204,14 @@ export function cohortCompatibilityScore(users: MatchableUser[]): {
 
   if (ambitionVariance > 35) {
     warnings.push(
-      `Ambition gap of ${ambitionVariance.toFixed(0)} pts — review if this is intentional`
+      `Ambition gap of ${ambitionVariance.toFixed(0)} pts. Review if this is intentional.`
     )
   }
 
   const lowPairs = pairScores.filter((ps) => ps.score < 0.45)
   if (lowPairs.length > 1) {
     warnings.push(
-      `${lowPairs.length} low-compatibility pairs detected — consider swapping a member`
+      `${lowPairs.length} low-compatibility pairs detected. Consider swapping a member.`
     )
   }
 
@@ -393,7 +393,7 @@ export const ASSESSMENT_QUESTIONS = [
   {
     id: "q1",
     text: "What drives you most right now?",
-    subtext: "Be honest — there are no wrong answers here.",
+    subtext: "Be honest. There are no wrong answers here.",
     options: [
       {
         key: "career",
@@ -435,7 +435,7 @@ export const ASSESSMENT_QUESTIONS = [
   {
     id: "q2",
     text: "What does a genuinely great week look like for you?",
-    subtext: "Not the ideal — the real version.",
+    subtext: "Not the ideal. The real version.",
     options: [
       {
         key: "output",
@@ -481,7 +481,7 @@ export const ASSESSMENT_QUESTIONS = [
     options: [
       {
         key: "solo",
-        text: "Solo — I need space and silence",
+        text: "Solo. I need space and silence",
         icon: "🎧",
         scores: { ambition: 10, community: 4, discipline: 14, openness: 12, growth: 14 },
         dimension: "community",
@@ -519,7 +519,7 @@ export const ASSESSMENT_QUESTIONS = [
   {
     id: "q4",
     text: "What do you want more of in your circle?",
-    subtext: "Be specific — this shapes who you'll meet.",
+    subtext: "Be specific. This shapes who you'll meet.",
     options: [
       {
         key: "accountability",
@@ -565,35 +565,35 @@ export const ASSESSMENT_QUESTIONS = [
     options: [
       {
         key: "starting",
-        text: "Just starting — still figuring it out",
+        text: "Just starting. Still figuring it out",
         icon: "🌅",
         scores: { ambition: 12, community: 14, discipline: 10, openness: 18, growth: 18 },
         dimension: "growth",
       },
       {
         key: "momentum",
-        text: "Early momentum — things are beginning to move",
+        text: "Early momentum. Things are beginning to move",
         icon: "⚡",
         scores: { ambition: 16, community: 12, discipline: 14, openness: 14, growth: 16 },
         dimension: "ambition",
       },
       {
         key: "building",
-        text: "Building seriously — fully committed",
+        text: "Building seriously. Fully committed",
         icon: "🔨",
         scores: { ambition: 18, community: 10, discipline: 18, openness: 10, growth: 14 },
         dimension: "ambition",
       },
       {
         key: "scaling",
-        text: "Scaling — need people at my level",
+        text: "Scaling. Need people at my level",
         icon: "📈",
         scores: { ambition: 20, community: 10, discipline: 16, openness: 10, growth: 12 },
         dimension: "ambition",
       },
       {
         key: "reinventing",
-        text: "Reinventing — major transition underway",
+        text: "Reinventing. Major transition underway",
         icon: "🦋",
         scores: { ambition: 14, community: 14, discipline: 12, openness: 18, growth: 18 },
         dimension: "openness",
@@ -610,7 +610,7 @@ export const ARCHETYPES = [
     slug: "builder",
     name: "The Builder",
     summary:
-      "You're driven by making things real. You thrive on shipping, on seeing ideas become tangible — and you need people around you who respect the work ethic it takes. You don't talk about doing things. You do them.",
+      "You're driven by making things real. You thrive on shipping, on seeing ideas become tangible, and you need people around you who respect the work ethic it takes. You don't talk about doing things. You do them.",
     dominantDimensions: ["ambition", "discipline"],
   },
   {
@@ -638,14 +638,14 @@ export const ARCHETYPES = [
     slug: "creator",
     name: "The Creator",
     summary:
-      "You express yourself through making. Whether it's writing, building, designing, or performing — creation is how you process the world. You need space, but you also need people who understand why the work matters.",
+      "You express yourself through making. Whether it's writing, building, designing, or performing, creation is how you process the world. You need space, but you also need people who understand why the work matters.",
     dominantDimensions: ["openness", "growth"],
   },
   {
     slug: "catalyst",
     name: "The Catalyst",
     summary:
-      "You accelerate people. In every room you enter, energy shifts. You're not just growing yourself — you're pulling others forward with you. The right group doesn't just support you; they become better because of you.",
+      "You accelerate people. In every room you enter, energy shifts. You're not just growing yourself. You're pulling others forward with you. The right group doesn't just support you; they become better because of you.",
     dominantDimensions: ["community", "ambition"],
   },
 ]

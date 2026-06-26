@@ -25,12 +25,12 @@ const PILLARS = [
   {
     icon: Brain,
     title: "Your Drive Profile",
-    body: "A 12-question assessment maps your ambition style, growth edges, and life context — not a personality type, a living picture of how you actually show up.",
+    body: "A 12-question assessment maps your ambition style, growth edges, and life context. Not a personality type. A living picture of how you actually show up.",
   },
   {
     icon: Users,
     title: "Your Weekly Cohort",
-    body: "Every week, a small group of matched people. A shared prompt. Real conversation. No performance, no pressure — just people who get it.",
+    body: "Every week, a small group of matched people. A shared prompt. Real conversation. No performance, no pressure. Just people who get it.",
   },
   {
     icon: Zap,
@@ -43,17 +43,17 @@ const HOW_IT_WORKS = [
   {
     step: "01",
     title: "Take the Drive Assessment",
-    body: "12 questions. 8 minutes. We learn how you think, what you're building, and where you're at. Not a personality quiz — a precision matching tool.",
+    body: "12 questions. 8 minutes. We learn how you think, what you're building, and where you're at. Not a personality quiz. A precision matching tool.",
   },
   {
     step: "02",
     title: "Get placed in your cohort",
-    body: "Every week, we build your group from scratch — people whose ambition, values, and life context align with yours. Different industries. Same fire.",
+    body: "Every week, we build your group from scratch. People whose ambition, values, and life context align with yours. Different industries. Same fire.",
   },
   {
     step: "03",
     title: "Engage with the weekly prompt",
-    body: "One question, shared by your whole cohort. You respond. You read theirs. Real conversation starts from there — no icebreakers, no small talk.",
+    body: "One question, shared by your whole cohort. You respond. You read theirs. Real conversation starts from there. No icebreakers, no small talk.",
   },
   {
     step: "04",
@@ -63,10 +63,10 @@ const HOW_IT_WORKS = [
 ]
 
 const IS_THIS_FOR_YOU = [
-  "You're building something — a company, a career, a creative practice, a second act — and you take it seriously.",
+  "You're building something. A company, a career, a creative practice, a second act. And you take it seriously.",
   "Your ambition is a core part of who you are, not something you apologize for.",
   "You're surrounded by people who love you but don't quite get what you're doing.",
-  "You've tried networking events and group chats and Slack communities — and left each one feeling more alone.",
+  "You've tried networking events and group chats and Slack communities. And left each one feeling more alone.",
   "You don't need more followers. You need one person who actually gets it.",
 ]
 
@@ -76,7 +76,7 @@ const PRICING_FEATURES = [
   "Structured prompts designed for depth",
   "BUZZ AI thought partner, always on",
   "Access to the full SoftLaunch archive",
-  "Cancel anytime — no questions asked",
+  "Cancel anytime. No questions asked.",
 ]
 
 // ─────────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ export default function HomePage() {
 
           {/* Subheadline */}
           <p className="text-lg text-brand-text-muted max-w-xl leading-relaxed sm:text-xl">
-            SoftLaunch matches you with the people who get it — the ones who understand what it costs to build something, and make it worth it.
+            SoftLaunch matches you with the people who get it. The ones who understand what it costs to build something, and make it worth it.
           </p>
 
           {/* Form */}
@@ -158,7 +158,7 @@ export default function HomePage() {
             />
             <blockquote className="pt-4">
               <p className="text-xl font-medium text-brand-text leading-relaxed sm:text-2xl">
-                &ldquo;I have a great team. I have a supportive partner. I have friends who cheer me on. And still — there are days when I feel like no one in my life truly understands what I&apos;m doing or why it matters so much to me. That loneliness is the thing I wish someone would solve.&rdquo;
+                &ldquo;I have a great team. I have a supportive partner. I have friends who cheer me on. And still, there are days when I feel like no one in my life truly understands what I&apos;m doing or why it matters so much to me. That loneliness is the thing I wish someone would solve.&rdquo;
               </p>
               <footer className="mt-6 flex items-center gap-3">
                 <div
@@ -220,7 +220,7 @@ export default function HomePage() {
           </div>
 
           <p className="text-center text-brand-text-muted leading-relaxed max-w-2xl mx-auto">
-            You didn&apos;t shrink your ambition. You expanded it. But the world around you stayed the same size. The gap between what you&apos;re building and who you can talk to about it — that gap is the Ambition Tax.
+            You didn&apos;t shrink your ambition. You expanded it. But the world around you stayed the same size. That gap between what you&apos;re building and who you can talk to about it is the Ambition Tax.
           </p>
         </div>
       </section>
@@ -239,10 +239,10 @@ export default function HomePage() {
               You&apos;ve tried. Networking events where everyone was performing. Online communities that felt like shouting into a feed. Masterminds with strangers who had nothing in common with you except a Stripe account.
             </p>
             <p className="text-base text-brand-text-muted leading-relaxed">
-              The problem wasn&apos;t you. The problem was the design. Most communities are built for volume — more members, more engagement, more noise. None of them are built for you specifically.
+              The problem wasn&apos;t you. The problem was the design. Most communities are built for volume: more members, more engagement, more noise. None of them are built for you specifically.
             </p>
             <p className="text-base text-brand-text-muted leading-relaxed">
-              SoftLaunch is different. We don&apos;t build communities. We build matches. Small, deliberate, meaningful — designed to actually follow through.
+              SoftLaunch is different. We don&apos;t build communities. We build matches. Small, deliberate, meaningful. Designed to actually follow through.
             </p>
           </div>
         </div>
@@ -350,14 +350,14 @@ export default function HomePage() {
               </h2>
               <div className="space-y-4 text-sm text-brand-text-muted leading-relaxed">
                 <p>
-                  Real conversation requires real safety. SoftLaunch is built from the ground up so that what you share inside stays inside — and the people you meet are exactly who they say they are.
+                  Real conversation requires real safety. SoftLaunch is built from the ground up so that what you share inside stays inside, and the people you meet are exactly who they say they are.
                 </p>
                 <ul className="space-y-2.5 mt-2">
                   {[
                     { title: "Real verification", desc: "Every member is verified before they join. No anonymity, no bots, no bad actors." },
                     { title: "AI-powered message screening", desc: "Harmful or inappropriate content is flagged before it reaches you." },
                     { title: "Choose who you connect with", desc: "You control your connections and can opt out of anyone, at any time." },
-                    { title: "Photo and screenshot protection", desc: "Your content stays in SoftLaunch — not in screenshots or shared threads." },
+                    { title: "Photo and screenshot protection", desc: "Your content stays in SoftLaunch. Not in screenshots or shared threads." },
                     { title: "Location sharing for meetups", desc: "When your cohort wants to meet IRL, our protected sharing keeps you in control." },
                     { title: "Emergency safety features", desc: "Help is one tap away, always." },
                   ].map((item) => (
@@ -399,7 +399,7 @@ export default function HomePage() {
 
           <div className="mt-6 rounded-xl border border-brand-border/50 bg-brand-bg px-5 py-4 text-center">
             <p className="text-sm text-brand-text-subtle">
-              If you read this list and felt seen — you&apos;re exactly who we built this for.
+              If you read this list and felt seen, you&apos;re exactly who we built this for.
             </p>
           </div>
         </div>
@@ -421,10 +421,10 @@ export default function HomePage() {
           <div className="max-w-2xl mx-auto text-center mb-14">
             <div className="space-y-4 text-base text-brand-text-muted leading-relaxed">
               <p>
-                Mallika was running a company, surrounded by people who supported her — and completely alone in what she was doing. Alex had spent a decade scaling teams and watching brilliant people disappear from the rooms that mattered. They met, compared notes, and realised they were describing the same problem from opposite ends.
+                Mallika was running a company, surrounded by people who supported her, and completely alone in what she was doing. Alex had spent a decade scaling teams and watching brilliant people disappear from the rooms that mattered. They met, compared notes, and realised they were describing the same problem from opposite ends.
               </p>
               <p>
-                SoftLaunch is what they built instead of accepting that loneliness as the cost of ambition. A way to find the people who think like you, burn like you, and build like you — without having to perform for them first.
+                SoftLaunch is what they built instead of accepting that loneliness as the cost of ambition. A way to find the people who think like you, burn like you, and build like you. Without having to perform for them first.
               </p>
               <p className="text-brand-text font-medium">
                 We hope it finds you.
@@ -485,7 +485,7 @@ export default function HomePage() {
             <div className="p-8 sm:p-10">
               <div className="mb-8">
                 <div className="inline-flex items-center gap-2 rounded-full bg-brand-primary/10 border border-brand-primary/20 px-3 py-1 text-xs font-medium text-brand-primary mb-3">
-                  First week free — always
+                  First week free. Always.
                 </div>
                 <div className="flex items-baseline gap-1">
                   <span className="font-display text-5xl font-bold text-brand-text">$29</span>
@@ -574,7 +574,7 @@ export default function HomePage() {
           </h2>
 
           <p className="text-base text-brand-text-muted leading-relaxed max-w-lg">
-            Join the waitlist. We&apos;re opening to founding members first — a small group of people who will shape what SoftLaunch becomes.
+            Join the waitlist. We&apos;re opening to founding members first. A small group of people who will shape what SoftLaunch becomes.
           </p>
 
           <WaitlistForm variant="section" />

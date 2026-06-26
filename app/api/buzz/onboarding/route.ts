@@ -169,7 +169,7 @@ function generateFallbackProfile(
     matchingNeeds:     ["accountability", "honest-feedback", "depth"],
     redFlagsToAvoid:   ["low-ambition", "all-talk", "passive"],
     idealPeerTraits,
-    summary: `You're someone who operates with intention — you showed up to this process, answered honestly, and that already sets you apart. BUZZ will use your answers to match you with people who push, not just support. The profile will sharpen as you chat more.`,
+    summary: `You're someone who operates with intention. You showed up to this process, answered honestly, and that already sets you apart. BUZZ will use your answers to match you with people who push, not just support. The profile will sharpen as you chat more.`,
     confidenceScore: 0.35,
     isFallback: true,
   }

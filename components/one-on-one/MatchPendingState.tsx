@@ -116,7 +116,7 @@ export function MatchPendingState({ firstName }: MatchPendingStateProps) {
       <div className="sl-panel p-6">
         <h3 className="text-sm font-semibold text-brand-text">Why we review every match</h3>
         <p className="mt-2 text-sm leading-relaxed text-brand-text-muted">
-          The algorithm identifies your highest-compatibility candidates — but a human reviews the
+          The algorithm identifies your highest-compatibility candidates, but a human reviews the
           pairing before activating it. This protects the quality of every match and ensures no one
           gets a connection they didn&apos;t earn.
         </p>

@@ -238,7 +238,7 @@ export default async function AdminOverviewPage() {
 
             {stats.pendingApproval === 0 && stats.usersInPool < 4 && (
               <div className="text-sm text-brand-text-subtle text-center py-4">
-                All clear — no urgent actions.
+                All clear. No urgent actions.
               </div>
             )}
           </div>

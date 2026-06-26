@@ -8,11 +8,11 @@ import type { WeeklyPrompt } from "@prisma/client"
 const DEFAULT_PROMPTS: Record<number, { title: string; text: string }> = {
   1: {
     title: "Week 1: Introductions",
-    text: "Share one thing you're currently building, working on, or trying to figure out — and why it matters to you.",
+    text: "Share one thing you're currently building, working on, or trying to figure out. And why it matters to you.",
   },
   2: {
     title: "Week 2: Accountability",
-    text: "What's a habit or goal you've been struggling to stay consistent with? What would help you stay on track — and how can this group support you?",
+    text: "What's a habit or goal you've been struggling to stay consistent with? What would help you stay on track, and how can this group support you?",
   },
   3: {
     title: "Week 3: Vision",
@@ -20,7 +20,7 @@ const DEFAULT_PROMPTS: Record<number, { title: string; text: string }> = {
   },
   4: {
     title: "Week 4: Reflection",
-    text: "What's one thing you learned about yourself over the last 4 weeks — from this group, or from what it surfaced in you?",
+    text: "What's one thing you learned about yourself over the last 4 weeks? From this group, or from what it surfaced in you.",
   },
 }
 

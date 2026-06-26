@@ -187,7 +187,7 @@ export function PendingCohortState({ driveProfile, psychProfile, firstName, join
           <div>
             <p className="font-medium text-brand-text text-sm">Know someone who'd fit?</p>
             <p className="text-xs text-brand-text-subtle mt-0.5">
-              Refer a friend — your cohort gets better the more they know your world.
+              Refer a friend. Your cohort gets better the more they know your world.
             </p>
           </div>
           <button

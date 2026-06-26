@@ -4,7 +4,7 @@ import Image from "next/image"
 import { CheckCircle2 } from "lucide-react"
 
 const PERKS = [
-  "Week 1 is always free — no card needed",
+  "Week 1 is always free. No card needed.",
   "Your Drive Profile assessment takes 8 minutes",
   "Matched with your cohort within 48 hours",
   "BUZZ AI thought partner included",

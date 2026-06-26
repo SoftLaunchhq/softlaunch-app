@@ -51,7 +51,7 @@ interface BuzzWaitingEngagementProps {
 const ENGAGEMENT_PROMPTS = [
   { emoji: "🎯", text: "What's one thing you're trying to figure out right now in your business?" },
   { emoji: "⚡", text: "If your cohort starts this week, what's the first thing you'd want to discuss?" },
-  { emoji: "🔥", text: "What's been your biggest win this month? (Big or small — both count.)" },
+  { emoji: "🔥", text: "What's been your biggest win this month? (Big or small, both count.)" },
   { emoji: "🤔", text: "What's a decision you've been putting off that you need a real opinion on?" },
   { emoji: "💡", text: "What's an idea you have that you haven't told anyone about yet?" },
   { emoji: "🚧", text: "What's the one obstacle that keeps coming up for you?" },
@@ -62,12 +62,12 @@ const ENGAGEMENT_PROMPTS = [
 const ARCHETYPE_TIPS: Record<string, { title: string; tip: string; action: string }> = {
   "The Executor": {
     title: "Use this time well",
-    tip: "Executors like you do best with structured accountability. Write down 3 specific outcomes you want from your cohort — that clarity will make your first session electric.",
+    tip: "Executors like you do best with structured accountability. Write down 3 specific outcomes you want from your cohort. That clarity will make your first session electric.",
     action: "Set 3 outcomes",
   },
   "The Visionary": {
     title: "Get your ideas ready",
-    tip: "Your cohort will benefit most from your big-picture thinking. Pick your boldest current idea to share in your first session — the kind of idea that might sound crazy at first.",
+    tip: "Your cohort will benefit most from your big-picture thinking. Pick your boldest current idea to share in your first session. The kind of idea that might sound crazy at first.",
     action: "Pick your big idea",
   },
   "The Connector": {
@@ -77,19 +77,19 @@ const ARCHETYPE_TIPS: Record<string, { title: string; tip: string; action: strin
   },
   "The Analyst": {
     title: "Prepare the right questions",
-    tip: "Your superpower is seeing what others miss. Come to your first cohort session with a problem you've been turning over in your head — the one you can't quite logic your way through alone.",
+    tip: "Your superpower is seeing what others miss. Come to your first cohort session with a problem you've been turning over in your head. The one you can't quite logic your way through alone.",
     action: "Define your key question",
   },
   "The Builder": {
     title: "What are you building?",
-    tip: "Builders get the most from cohorts when they share early work — not just finished things. What's something in progress you'd like real feedback on?",
+    tip: "Builders get the most from cohorts when they share early work, not just finished things. What's something in progress you'd like real feedback on?",
     action: "Pick something to share",
   },
 }
 
 const DEFAULT_TIP = {
   title: "Make the most of your cohort",
-  tip: "The most valuable cohort members come with specific questions and real problems — not polished presentations. Start thinking about what you'd actually want to bring to the table.",
+  tip: "The most valuable cohort members come with specific questions and real problems, not polished presentations. Start thinking about what you'd actually want to bring to the table.",
   action: "Think about your agenda",
 }
 
@@ -242,7 +242,7 @@ export function BuzzWaitingEngagement({
         <button
           onClick={() => {
             setOpeningMessage(
-              `Hey${firstName ? ` ${firstName}` : ""}! While you're waiting for your cohort, I'm here. What's on your mind right now? A problem, an idea, a decision — I'll give you a real answer.`
+              `Hey${firstName ? ` ${firstName}` : ""}! While you're waiting for your cohort, I'm here. What's on your mind right now? A problem, an idea, a decision. I'll give you a real answer.`
             )
             setChatOpen(true)
           }}

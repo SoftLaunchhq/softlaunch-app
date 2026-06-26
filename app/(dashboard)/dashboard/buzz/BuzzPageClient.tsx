@@ -96,7 +96,7 @@ export function BuzzPageClient({ driveProfile, psychProfile, firstName }: Props)
               <h1 className="font-display text-2xl font-bold text-brand-text">BUZZ</h1>
             </div>
             <p className="text-xs text-brand-text-muted mt-0.5">
-              Your AI accountability partner — decisive, honest, direct.
+              Your AI accountability partner. Decisive, honest, direct.
             </p>
           </div>
         </div>
@@ -236,7 +236,7 @@ export function BuzzPageClient({ driveProfile, psychProfile, firstName }: Props)
                     openingMessage={
                       seedMessage
                         ? undefined
-                        : `Hey${firstName ? ` ${firstName}` : ""}! I'm BUZZ — your accountability AI. I give real answers. No "it depends." No hedging. What's on your mind right now?`
+                        : `Hey${firstName ? ` ${firstName}` : ""}! I'm BUZZ, your accountability AI. I give real answers. No "it depends." No hedging. What's on your mind right now?`
                     }
                     className="h-full"
                   />

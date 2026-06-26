@@ -286,7 +286,7 @@ export function BuzzPanel({ answer, driveProfile, onContinue, isLastQuestion }: 
         <button
           onClick={toggleMemory}
           className="ml-auto flex items-center gap-1.5 text-xs text-brand-text-subtle hover:text-brand-text transition-colors"
-          title={memoryEnabled ? "BUZZ memory is ON — click to disable" : "Enable BUZZ memory"}
+          title={memoryEnabled ? "BUZZ memory is ON. Click to disable." : "Enable BUZZ memory"}
         >
           {memoryEnabled ? (
             <ToggleRight className="w-4 h-4 text-brand-primary" />

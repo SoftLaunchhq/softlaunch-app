@@ -10,7 +10,7 @@ const BENEFITS = [
   {
     icon: Zap,
     title: "First access to cohort matching",
-    body: "When we open, you're first in — before the general waitlist, before the public launch.",
+    body: "When we open, you're first in. Before the general waitlist, before the public launch.",
   },
   {
     icon: Shield,
@@ -21,7 +21,7 @@ const BENEFITS = [
 
 const WHAT_HAPPENS_NEXT = [
   "We'll send you a confirmation email within minutes.",
-  "Within 48 hours, you'll receive an email from Sunny directly — not a template.",
+  "Within 48 hours, you'll receive an email from Sunny directly. Not a template.",
   "When we open founding member access, you'll be among the first notified.",
   "You take the Drive Assessment. We match you with your cohort. It begins.",
 ]

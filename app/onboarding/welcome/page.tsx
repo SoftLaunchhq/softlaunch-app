@@ -84,8 +84,8 @@ export default function WelcomePage() {
             <span className="gradient-text">frequency.</span>
           </h1>
           <p className="text-brand-text-muted text-base leading-relaxed max-w-sm mx-auto">
-            This takes about 4 minutes. No right answers —
-            just be direct. BUZZ will handle the rest.
+            This takes about 4 minutes. No right answers.
+            Just be direct. BUZZ will handle the rest.
           </p>
         </div>
 

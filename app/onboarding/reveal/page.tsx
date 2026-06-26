@@ -249,7 +249,7 @@ export default function RevealPage() {
                   <div className="sl-panel p-5">
                     <p className="text-sm text-brand-text-muted leading-relaxed">
                       Your drive profile will be shared with your matched cohort.
-                      The next step is completing your public profile — who you are,
+                      The next step is completing your public profile: who you are,
                       what you're working on, and when you're available.
                     </p>
                   </div>

@@ -333,7 +333,7 @@ export function BuzzOnboarding({ driveProfile, firstName: _firstName, onComplete
     } catch (err: any) {
       console.error("[BuzzOnboarding] Profile generation error:", err)
       // Even if this fails, show completion — the local fallback in the API handles this
-      setError("Couldn't generate full profile — try refreshing the page. Your answers were saved.")
+      setError("Couldn't generate full profile. Try refreshing the page. Your answers were saved.")
       setPhase("chat")
       setIsWaitingForAnswer(true)
     }
@@ -433,7 +433,7 @@ export function BuzzOnboarding({ driveProfile, firstName: _firstName, onComplete
         {isOffline && (
           <div className="flex items-center gap-2 rounded-lg border border-yellow-500/20 bg-yellow-500/8 px-3 py-2 mb-5 text-xs text-yellow-300">
             <WifiOff className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>BUZZ was offline — your profile was generated from your answers directly. It'll improve as you chat more.</span>
+            <span>BUZZ was offline. Your profile was generated from your answers directly. It'll improve as you chat more.</span>
           </div>
         )}
 

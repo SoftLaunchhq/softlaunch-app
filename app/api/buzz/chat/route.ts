@@ -35,14 +35,14 @@ const FALLBACK_RESPONSES: Array<{ pattern: RegExp; responses: string[] }> = [
   {
     pattern: /stress|anxious|overwhelm|worried|nervous|panic|pressure/i,
     responses: [
-      "That feeling is data. What's the one specific thing underneath all of it — if you had to name just one?",
+      "That feeling is data. What's the one specific thing underneath all of it, if you had to name just one?",
       "Stress usually means something important is at stake. What's the real thing you're afraid of losing here?",
     ],
   },
   {
     pattern: /should i|decision|choice|option|choose|picking/i,
     responses: [
-      "Before I weigh in — what does your gut already know? And what's stopping you from trusting it?",
+      "Before I weigh in, what does your gut already know? And what's stopping you from trusting it?",
       "What's the cost of getting this wrong? And the cost of waiting too long to decide?",
     ],
   },
@@ -57,13 +57,13 @@ const FALLBACK_RESPONSES: Array<{ pattern: RegExp; responses: string[] }> = [
     pattern: /money|funding|revenue|raise|investor|cash|runway|bootstrap/i,
     responses: [
       "What's your actual runway right now? And what would change if you had 12 more months of it?",
-      "Are you raising because you need it or because it feels like validation? There's no wrong answer — but it changes the strategy completely.",
+      "Are you raising because you need it or because it feels like validation? There's no wrong answer, but it changes the strategy completely.",
     ],
   },
   {
     pattern: /focus|priorit|todo|task|productive|distract|busy/i,
     responses: [
-      "If you could only move one thing forward this week — just one — what would actually matter in 90 days?",
+      "If you could only move one thing forward this week, just one, what would actually matter in 90 days?",
       "What are you doing that feels productive but isn't actually moving the needle?",
     ],
   },
@@ -71,21 +71,21 @@ const FALLBACK_RESPONSES: Array<{ pattern: RegExp; responses: string[] }> = [
     pattern: /idea|startup|build|product|launch|market/i,
     responses: [
       "What's the fastest way to find out if you're wrong about this? That's usually the most useful question.",
-      "Who's the one person who would tell you this idea is bad — and what would they say?",
+      "Who's the one person who would tell you this idea is bad, and what would they say?",
     ],
   },
   {
     pattern: /exam|study|learn|class|school|university|degree/i,
     responses: [
-      "Preparation anxiety usually means you care — which is a good sign. What's the specific gap you're most worried about?",
+      "Preparation anxiety usually means you care, which is a good sign. What's the specific gap you're most worried about?",
       "What's the one thing you could focus on for the next hour that would move the needle most?",
     ],
   },
   {
     pattern: /tired|burn|exhaust|energy|sleep|rest/i,
     responses: [
-      "Burnout doesn't sneak up on people — they usually see it coming and push anyway. What are you protecting by not slowing down?",
-      "What would actually help you recharge right now — not what you think you should do, what would actually work?",
+      "Burnout doesn't sneak up on people. They usually see it coming and push anyway. What are you protecting by not slowing down?",
+      "What would actually help you recharge right now? Not what you think you should do, what would actually work?",
     ],
   },
   {
@@ -102,7 +102,7 @@ const DEFAULT_FALLBACK_RESPONSES = [
   "What would you do if you already knew the answer?",
   "What's the real question underneath that one?",
   "If this problem disappeared tomorrow, what would that free you up to do?",
-  "What do you actually want — not what you think you should want?",
+  "What do you actually want? Not what you think you should want?",
 ]
 
 function getLocalFallbackResponse(

@@ -20,11 +20,11 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: "SoftLaunch — Find Your People",
+    default: "SoftLaunch: Find Your People",
     template: "%s | SoftLaunch",
   },
   description:
-    "The more ambitious you become, the more isolated you get. SoftLaunch matches driven people through structured 4-week cohorts — so you actually build real friendships.",
+    "The more ambitious you become, the more isolated you get. SoftLaunch matches driven people through structured 4-week cohorts so you actually build real friendships.",
   keywords: [
     "friendship",
     "accountability",
@@ -43,14 +43,14 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://softlaunchhq.com",
     siteName: "SoftLaunch",
-    title: "SoftLaunch — Find Your People",
+    title: "SoftLaunch: Find Your People",
     description:
       "Structured 4-week cohorts for ambitious people. Matched by drive, not job titles.",
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "SoftLaunch" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SoftLaunch — Find Your People",
+    title: "SoftLaunch: Find Your People",
     description: "Structured 4-week cohorts for ambitious people.",
     images: ["/og-image.png"],
   },

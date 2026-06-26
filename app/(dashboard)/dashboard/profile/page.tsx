@@ -331,7 +331,7 @@ export default function DashboardProfilePage() {
             <div>
               <input
                 {...register("headline")}
-                placeholder='Headline — e.g. "Founder building in Charlotte"'
+                placeholder='Headline, e.g. "Founder building in Charlotte"'
                 className={inputCls}
               />
               <p className={`mt-1 text-right text-xs ${headlineValue.length > 70 ? "text-brand-warning" : "text-brand-text-subtle"}`}>
@@ -343,7 +343,7 @@ export default function DashboardProfilePage() {
             <div>
               <textarea
                 {...register("bio")}
-                placeholder="Short bio — what are you working on? (optional)"
+                placeholder="Short bio: what are you working on? (optional)"
                 rows={3}
                 className={`${inputCls} resize-none`}
               />

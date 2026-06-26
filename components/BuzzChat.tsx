@@ -242,7 +242,7 @@ export function BuzzChat({
             >
               <div className="mb-3">{BUZZ_AVATAR}</div>
               <p className="text-sm text-brand-text-muted">Ask BUZZ anything.</p>
-              <p className="text-xs text-brand-text-subtle mt-1">Decisions, ideas, advice — BUZZ gives you a real answer.</p>
+              <p className="text-xs text-brand-text-subtle mt-1">Decisions, ideas, advice. BUZZ gives you a real answer.</p>
             </motion.div>
           )}
 
@@ -312,7 +312,7 @@ export function BuzzChat({
       {isOffline && (
         <div className="flex items-center gap-2 rounded-lg border border-yellow-500/20 bg-yellow-500/8 px-3 py-2 mb-3 text-xs text-yellow-300">
           <WifiOff className="w-3.5 h-3.5 flex-shrink-0" />
-          <span>BUZZ is responding locally — OpenAI credits may need topping up. Answers are still useful.</span>
+          <span>BUZZ is responding locally. OpenAI credits may need topping up. Answers are still useful.</span>
         </div>
       )}
 
