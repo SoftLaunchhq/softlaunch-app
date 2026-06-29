@@ -25,8 +25,8 @@ const PERKS = [
   },
   {
     icon: Zap,
-    title: "First Week Free",
-    desc: "No card required for Week 1. See if the group clicks before you ever pay a cent.",
+    title: "4 Weeks Free",
+    desc: "No payment required. CYPG members receive the full 4-week experience at no cost.",
   },
 ]
 
@@ -103,7 +103,7 @@ export default function CYPGLandingPage() {
         <p className="text-lg text-brand-text-muted leading-relaxed max-w-2xl mx-auto mb-10">
           SoftLaunch matches you into a tight-knit group of 4 driven people for 4 weeks of
           real accountability. No fluff, no corporate workshops.
-          CYPG members get priority access and their first week free.
+          CYPG members get priority access and the full 4-week SoftLaunch experience completely free.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
@@ -123,7 +123,7 @@ export default function CYPGLandingPage() {
         </div>
 
         <p className="mt-4 text-xs text-brand-text-subtle">
-          No credit card required for Week 1 · Takes 8 minutes to get started
+          No payment required · CYPG members get all 4 weeks free · Takes 8 minutes to get started
         </p>
       </section>
 
@@ -155,7 +155,7 @@ export default function CYPGLandingPage() {
             {[
               { step: "01", label: "8-min Drive Profile", desc: "Tell BUZZ who you are and what actually drives you." },
               { step: "02", label: "48-hr Matching", desc: "Algorithm pairs you with 3 people who complement your style." },
-              { step: "03", label: "Week 1: Free", desc: "Meet your group. Set your 4-week goal. No card, no pressure." },
+              { step: "03", label: "4 Weeks: Free", desc: "Meet your group. Set your 4-week goal. No card, no payment required." },
               { step: "04", label: "4 Weeks of Pull", desc: "Weekly check-ins, real talk, and people who hold you accountable." },
             ].map((s) => (
               <div key={s.step}>
@@ -198,7 +198,7 @@ export default function CYPGLandingPage() {
           Ready to find your people?
         </h2>
         <p className="text-brand-text-muted mb-8 leading-relaxed">
-          Your CYPG connection gets you straight to the front. Priority matching, no waitlist, first week on us.
+          Your CYPG connection gets you straight to the front. Priority matching, no waitlist, all 4 weeks on us.
         </p>
 
         <div className="flex flex-col gap-3 items-center">
@@ -212,7 +212,7 @@ export default function CYPGLandingPage() {
 
           <div className="flex flex-col gap-1.5 mt-4">
             {[
-              "No credit card for Week 1",
+              "No payment required. All 4 weeks free.",
               "Priority matching within 48 hours",
               "Cancel anytime. No lock-in.",
             ].map((item) => (

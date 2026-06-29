@@ -40,9 +40,9 @@ export const PARTNERS: Record<string, Partner> = {
     active: true,
     headline: "Built for people who play golf and actually show up.",
     subheadline:
-      "SoftLaunch is a tight-knit accountability community for driven people. CYPG members get first access. No waitlist, no card required for Week 1.",
+      "SoftLaunch is a tight-knit accountability community for driven people. CYPG members get first access and the full 4-week experience completely free. No waitlist, no payment required.",
     ctaLabel: "Join as a CYPG member →",
-    benefitLabel: "CYPG members get priority matching + a free first month",
+    benefitLabel: "CYPG members get priority matching + the full 4-week cohort completely free",
     benefitDurationDays: 30,
     cookieTtlDays: 30,
   },
