@@ -4,11 +4,15 @@
 // app/onboarding/cohort-type/page.tsx
 // Onboarding step: user selects Social or Professional cohort.
 // Sits between /onboarding/welcome and /onboarding/assessment
-// for new users, and is used as a one-time gate for existing
-// users who completed onboarding before cohortIntent was added.
+// for new users, and is used in two other contexts:
+//   1. One-time gate — existing users with null cohortIntent
+//      are redirected here from /dashboard with ?returnTo=/dashboard
+//   2. Voluntary edit — user clicks the "Cohort Type" card on
+//      the dashboard with ?returnTo=/dashboard&current=social
 //
-// Supports ?returnTo=<path> — after saving, the user is sent
-// to returnTo (e.g. /dashboard) instead of /onboarding/assessment.
+// Supports ?returnTo=<path>  — must be an internal path (starts
+// with "/" and not "//") to prevent open-redirect attacks.
+// Supports ?current=<intent> — pre-selects the user's saved value.
 // ─────────────────────────────────────────────────────────────
 
 import { Suspense, useState } from "react"
@@ -51,17 +55,46 @@ const OPTIONS: CohortOption[] = [
 ]
 
 // ─────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Validates a returnTo value to prevent open-redirect attacks.
+ * Only allows internal relative paths that start with "/" but NOT "//".
+ * Falls back to /onboarding/assessment (standard new-user next step).
+ */
+function safeReturnTo(value: string | null): string {
+  if (!value) return "/onboarding/assessment"
+  const trimmed = value.trim()
+  // Must be a root-relative path, not a protocol-relative URL (//evil.com)
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) return trimmed
+  return "/onboarding/assessment"
+}
+
+/**
+ * Validates a ?current= param value. Returns the Intent if valid, null otherwise.
+ */
+function parseCurrentIntent(value: string | null): Intent | null {
+  if (value === "social" || value === "professional") return value
+  return null
+}
+
+// ─────────────────────────────────────────────────────────────
 // Inner component — uses useSearchParams (must be in Suspense)
 // ─────────────────────────────────────────────────────────────
 
 function CohortTypeContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  // returnTo is set when redirecting existing users from the dashboard.
-  // Defaults to /onboarding/assessment for the standard new-user flow.
-  const returnTo = searchParams.get("returnTo") || "/onboarding/assessment"
 
-  const [selected, setSelected] = useState<Intent | null>(null)
+  // Validated returnTo — safe against open-redirect
+  const returnTo = safeReturnTo(searchParams.get("returnTo"))
+
+  // Pre-selected value passed by the dashboard card link
+  const currentIntent = parseCurrentIntent(searchParams.get("current"))
+
+  // Initialize selection with saved value (null if no prior selection)
+  const [selected, setSelected] = useState<Intent | null>(currentIntent)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -82,7 +115,6 @@ function CohortTypeContent() {
         throw new Error(body.error || "Could not save selection")
       }
 
-      // Go back to wherever the user came from (dashboard or assessment)
       router.push(returnTo)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Something went wrong"
@@ -91,8 +123,29 @@ function CohortTypeContent() {
     }
   }
 
-  // Shown when the user arrived from /dashboard (existing user gate)
+  // Context flags
   const isDashboardReturn = returnTo === "/dashboard"
+  // "edit" = user voluntarily came here to change an existing preference
+  const isEditing = isDashboardReturn && currentIntent !== null
+
+  // ── Copy variants ─────────────────────────────────────────
+  const stepLabel = isEditing
+    ? "Update preference"
+    : isDashboardReturn
+    ? "One quick question"
+    : "Before we begin"
+
+  const description = isEditing
+    ? "You can change this anytime. Your updated preference will be used when we form your next cohort."
+    : isDashboardReturn
+    ? "We added this recently and want to make sure we match you with the right people."
+    : "This helps us match you with people looking for the same kind of connection."
+
+  const buttonLabel = isEditing
+    ? "Save changes"
+    : isDashboardReturn
+    ? "Save and go to dashboard"
+    : "Continue to assessment"
 
   return (
     <div className="flex min-h-[calc(100vh-73px)] flex-col items-center justify-center py-12">
@@ -109,7 +162,7 @@ function CohortTypeContent() {
           transition={{ delay: 0.1 }}
           className="text-center text-xs font-semibold uppercase tracking-widest text-brand-text-subtle mb-6"
         >
-          {isDashboardReturn ? "One quick question" : "Before we begin"}
+          {stepLabel}
         </motion.p>
 
         {/* Heading */}
@@ -120,9 +173,7 @@ function CohortTypeContent() {
             <span className="gradient-text">you looking for?</span>
           </h1>
           <p className="text-brand-text-muted text-base leading-relaxed max-w-sm mx-auto">
-            {isDashboardReturn
-              ? "We added this recently and want to make sure we match you with the right people."
-              : "This helps us match you with people looking for the same kind of connection."}
+            {description}
           </p>
         </div>
 
@@ -232,7 +283,7 @@ function CohortTypeContent() {
           </motion.p>
         )}
 
-        {/* Continue button */}
+        {/* CTA button */}
         <motion.button
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -250,15 +301,18 @@ function CohortTypeContent() {
             </>
           ) : (
             <>
-              {isDashboardReturn ? "Save and go to dashboard" : "Continue to assessment"}
+              {buttonLabel}
               <ArrowRight className="h-4 w-4" />
             </>
           )}
         </motion.button>
 
-        <p className="text-center text-xs text-brand-text-subtle mt-4">
-          You must select one option to continue.
-        </p>
+        {/* Footer hint — only shown when nothing is pre-selected */}
+        {!currentIntent && (
+          <p className="text-center text-xs text-brand-text-subtle mt-4">
+            You must select one option to continue.
+          </p>
+        )}
       </motion.div>
     </div>
   )

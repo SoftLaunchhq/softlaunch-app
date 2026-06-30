@@ -6,7 +6,8 @@ import { PendingCohortState } from "@/components/dashboard/PendingCohortState"
 import { CohortView } from "@/components/dashboard/CohortView"
 import { UpgradePrompt } from "@/components/dashboard/UpgradePrompt"
 import { DbErrorPrompt } from "@/components/dashboard/DbErrorPrompt"
-import { CalendarDays, CreditCard, UsersRound, SplitSquareHorizontal } from "lucide-react"
+import { CalendarDays, CreditCard, UsersRound, SplitSquareHorizontal, ChevronRight } from "lucide-react"
+import Link from "next/link"
 
 // ─────────────────────────────────────────────────────────────
 // TYPES
@@ -336,6 +337,11 @@ export default async function DashboardPage() {
             }
             label="Cohort Type"
             value={cohortIntentLabel}
+            href={
+              `/onboarding/cohort-type?returnTo=/dashboard` +
+              (cohortIntentValue ? `&current=${cohortIntentValue}` : "")
+            }
+            hint="Click to change"
           />
         </div>
       </div>
@@ -381,23 +387,54 @@ function StatCard({
   iconBg,
   label,
   value,
+  href,
+  hint,
 }: {
   icon: React.ReactNode
   iconBg: string
   label: string
   value: string
+  /** When provided the card renders as a <Link> with hover styles */
+  href?: string
+  /** Small helper text shown below the value (only on clickable cards) */
+  hint?: string
 }) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl border border-brand-border/80 bg-brand-bg/50 px-4 py-3">
+  const inner = (
+    <>
       <div className={`flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0 ${iconBg}`}>
         {icon}
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-[11px] font-medium uppercase tracking-wider text-brand-text-subtle">
           {label}
         </p>
         <p className="text-sm font-semibold text-brand-text truncate">{value}</p>
+        {hint && (
+          <p className="text-[10px] text-brand-text-subtle mt-0.5 group-hover:text-brand-primary transition-colors">
+            {hint}
+          </p>
+        )}
       </div>
+      {href && (
+        <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-brand-text-subtle group-hover:text-brand-primary transition-colors" />
+      )}
+    </>
+  )
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="group flex items-center gap-3 rounded-xl border border-brand-border/80 bg-brand-bg/50 px-4 py-3 transition-all duration-200 hover:border-brand-primary/40 hover:bg-brand-primary/5 cursor-pointer"
+      >
+        {inner}
+      </Link>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-brand-border/80 bg-brand-bg/50 px-4 py-3">
+      {inner}
     </div>
   )
 }
