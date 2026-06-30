@@ -15,11 +15,18 @@ const profileSchema = z.object({
   preferredTime: z.string().optional(),
 })
 
-/** Detect Prisma / DB connection errors */
+/** Detect Prisma / DB connection errors (including pgBouncer-specific failures) */
 function isDbConnectionError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false
   const e = error as any
-  if (e.code === "P1001" || e.code === "P1017" || e.code === "P2021") return true
+  if (
+    e.code === "P1000" || // Authentication failed against DB server
+    e.code === "P1001" || // Can't reach DB server
+    e.code === "P1017" || // Server closed connection
+    e.code === "P2021" || // Table does not exist (schema mismatch)
+    e.code === "P2028"    // Transaction API error — thrown when $transaction() is used
+                          // with pgBouncer in transaction mode (?pgbouncer=true, port 6543)
+  ) return true
   if (e.name === "PrismaClientInitializationError") return true
   const msg: string = e.message ?? ""
   return (
@@ -29,7 +36,20 @@ function isDbConnectionError(error: unknown): boolean {
     msg.includes("password authentication failed") ||
     msg.includes("postgresql://user:password") ||
     msg.includes("Environment variable not found") ||
-    msg.includes("Can't reach database server")
+    msg.includes("Can't reach database server") ||
+    msg.includes("Authentication failed against database server") ||
+    msg.includes("credentials") ||
+    // ── Supabase pgBouncer / pooler errors ────────────────────
+    // Returned when the project is paused, the tenant isn't found,
+    // or the pooler rejects the connection before hitting the DB layer.
+    msg.includes("Tenant or user not found") ||
+    msg.includes("tenant_not_found") ||
+    msg.includes("Max client connections reached") ||
+    msg.includes("remaining connection slots are reserved") ||
+    msg.includes("FATAL:") ||
+    msg.includes("ERROR:  terminating connection") ||
+    msg.includes("SSL connection error") ||
+    msg.includes("SSL SYSCALL error")
   )
 }
 
@@ -75,45 +95,52 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    await db.$transaction(async (tx) => {
-      await tx.profile.upsert({
-        where: { userId: user!.id },
-        create: {
-          userId: user!.id,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          headline: data.headline,
-          bio: data.bio,
-          linkedinUrl: data.linkedinUrl || null,
-        },
-        update: {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          headline: data.headline,
-          bio: data.bio,
-          linkedinUrl: data.linkedinUrl || null,
-        },
-      })
+    // ─────────────────────────────────────────────────────────
+    // Sequential writes — Prisma interactive transactions
+    // ($transaction with async callback) are NOT compatible with
+    // pgBouncer in transaction mode (?pgbouncer=true, port 6543).
+    // That combination throws P2028 and surfaces as "Internal
+    // server error". All three operations are idempotent upserts
+    // so partial completion is safe to retry — atomicity is not
+    // required here and the sequential approach is production-safe.
+    // ─────────────────────────────────────────────────────────
+    await db.profile.upsert({
+      where: { userId: user!.id },
+      create: {
+        userId: user!.id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        headline: data.headline,
+        bio: data.bio,
+        linkedinUrl: data.linkedinUrl || null,
+      },
+      update: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        headline: data.headline,
+        bio: data.bio,
+        linkedinUrl: data.linkedinUrl || null,
+      },
+    })
 
-      await tx.cohortPreferences.upsert({
-        where: { userId: user!.id },
-        create: {
-          userId: user!.id,
-          preferredThemes: data.preferredThemes,
-          preferredDays: data.preferredDays || [],
-          preferredTime: data.preferredTime,
-        },
-        update: {
-          preferredThemes: data.preferredThemes,
-          preferredDays: data.preferredDays || [],
-          preferredTime: data.preferredTime,
-        },
-      })
+    await db.cohortPreferences.upsert({
+      where: { userId: user!.id },
+      create: {
+        userId: user!.id,
+        preferredThemes: data.preferredThemes,
+        preferredDays: data.preferredDays || [],
+        preferredTime: data.preferredTime,
+      },
+      update: {
+        preferredThemes: data.preferredThemes,
+        preferredDays: data.preferredDays || [],
+        preferredTime: data.preferredTime,
+      },
+    })
 
-      await tx.user.update({
-        where: { id: user!.id },
-        data: { onboardingStep: "COMPLETE", onboardingComplete: true },
-      })
+    await db.user.update({
+      where: { id: user!.id },
+      data: { onboardingStep: "COMPLETE", onboardingComplete: true },
     })
 
     return NextResponse.json({ success: true })
@@ -128,7 +155,23 @@ export async function POST(req: NextRequest) {
       return liteModeFallback(data)
     }
 
-    console.error("Profile save error:", error)
+    // Structured log — surfaced in Vercel Function logs
+    console.error("[profile] Unexpected save error:", {
+      code: (error as any)?.code,
+      name: (error as any)?.name,
+      message: String((error as any)?.message ?? "").slice(0, 400),
+    })
+    // In development, return the raw error message so you can see exactly what failed
+    if (process.env.NODE_ENV === "development") {
+      return NextResponse.json(
+        {
+          error: "Internal server error",
+          detail: String((error as any)?.message ?? error),
+          code: (error as any)?.code ?? null,
+        },
+        { status: 500 }
+      )
+    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

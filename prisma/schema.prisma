@@ -3,7 +3,11 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  // native        = dev machine (macOS or whatever runs `prisma generate`)
+  // rhel-openssl-1.0.x = Vercel / Amazon Linux 2 (production)
+  // debian-openssl-3.0.x = Ubuntu 22 / GitHub Codespaces / Cowork sandbox
+  // linux-musl-openssl-3.0.x = Alpine Linux (Docker, some CI environments)
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
