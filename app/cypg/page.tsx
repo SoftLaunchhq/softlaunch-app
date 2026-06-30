@@ -54,30 +54,8 @@ export default function CYPGLandingPage() {
         }}
       />
 
-      {/* ── Navbar ────────────────────────────────────────── */}
-      <nav className="flex items-center justify-between px-5 py-4 max-w-6xl mx-auto">
-        <Link href="/" className="flex items-center gap-2.5">
-          <Image
-            src="/logo.png"
-            alt="SoftLaunch"
-            width={36}
-            height={33}
-            className="object-contain"
-            priority
-          />
-          <span className="font-display text-[17px] font-bold tracking-tight text-brand-text">
-            SoftLaunch
-          </span>
-        </Link>
-        <Link
-          href="/sign-in"
-          className="text-sm font-medium text-brand-text-muted hover:text-brand-text transition-colors"
-        >
-          Already a member? Sign in →
-        </Link>
-      </nav>
-
       {/* ── Hero ──────────────────────────────────────────── */}
+      {/* Note: global Navbar in app/layout.tsx renders the top nav for this route. */}
       <section className="max-w-4xl mx-auto px-5 pt-16 pb-10 text-center">
         {/* Partner badge */}
         <div className="inline-flex items-center gap-2 rounded-full border border-brand-primary/30 bg-brand-primary/8 px-4 py-1.5 text-xs font-semibold text-brand-primary mb-8 tracking-wide uppercase">

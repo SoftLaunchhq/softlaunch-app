@@ -5,11 +5,16 @@ import { generateCohortName } from "@/lib/utils"
 import { z } from "zod"
 
 const createCohortSchema = z.object({
-  memberIds: z.array(z.string()).length(4, "Cohort must have exactly 4 members"),
+  // Allow 1–8 members so admins can approve manually edited cohorts.
+  // The ideal of 4 is enforced as a UI warning on the client, not a hard API block.
+  memberIds: z.array(z.string()).min(1, "Cohort must have at least 1 member").max(8),
   theme: z.string().optional(),
   matchScore: z.number().optional(),
   matchingVersion: z.number().optional(),
   notes: z.string().optional(),
+  // Auditability fields set by the admin matching page
+  wasManuallyEdited: z.boolean().optional(),
+  originalMemberIds: z.array(z.string()).optional(),
 })
 
 // POST /api/cohorts — Create a new cohort (admin only)
@@ -59,7 +64,7 @@ export async function POST(req: NextRequest) {
         })),
       })
 
-      // Log admin action
+      // Log admin action — include manual-edit audit trail if applicable
       await tx.adminAction.create({
         data: {
           adminId: admin.id,
@@ -69,6 +74,8 @@ export async function POST(req: NextRequest) {
           metadata: {
             memberIds: data.memberIds,
             matchScore: data.matchScore,
+            wasManuallyEdited: data.wasManuallyEdited ?? false,
+            originalMemberIds: data.originalMemberIds ?? data.memberIds,
           },
         },
       })

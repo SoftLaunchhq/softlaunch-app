@@ -89,6 +89,8 @@ export async function POST() {
     return NextResponse.json({
       suggestions,
       poolSize: poolUsers.length,
+      // Return full pool so the admin UI can populate Add/Replace pickers
+      poolUsers: matchableUsers,
     })
   } catch (error) {
     console.error("Matching error:", error)
