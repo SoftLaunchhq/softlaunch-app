@@ -1,5 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
 import { db } from "@/lib/db"
 import { PendingCohortState } from "@/components/dashboard/PendingCohortState"
 import { CohortView } from "@/components/dashboard/CohortView"
@@ -248,12 +249,24 @@ export default async function DashboardPage() {
 
   // ── cohortIntent gate ──────────────────────────────────────
   // Users who completed onboarding before cohortIntent was added have
-  // cohortIntent = null. Redirect them once to choose Social or Professional.
-  // Admins/Founders bypass this (they may not go through member onboarding).
+  // cohortIntent = null in the DB. We check BOTH the DB field AND the
+  // httpOnly cookie (sl_cohort_intent) set by /api/cohort-intent.
+  //
+  // The cookie is the primary source of truth so this gate works even
+  // before `prisma generate` + `prisma db push` have been run on the
+  // new cohortIntent column.  Once those commands are run the DB field
+  // is also populated and both checks pass independently.
+  //
+  // Admins/Founders bypass this gate entirely.
   const isAdminUser =
     (user as any).role === "ADMIN" || (user as any).role === "FOUNDER"
-  if (!isAdminUser && !(user as any).cohortIntent) {
-    redirect("/onboarding/cohort-type?returnTo=/dashboard")
+  if (!isAdminUser) {
+    const cookieStore = cookies()
+    const intentCookie = cookieStore.get("sl_cohort_intent")?.value
+    const hasIntent = Boolean((user as any).cohortIntent || intentCookie)
+    if (!hasIntent) {
+      redirect("/onboarding/cohort-type?returnTo=/dashboard")
+    }
   }
 
   const activeMembership = user.memberships[0]
