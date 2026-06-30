@@ -402,17 +402,42 @@ function SuggestionCard({
   // Members eligible to add/replace — exclude anyone already in this draft
   const currentIds = new Set(draftMembers.map((m) => m.id))
 
-  // Filtered by search
+  // Determine dominant cohort intent in this draft (for picker sorting)
+  const draftIntentCounts = draftMembers.reduce(
+    (acc, m) => {
+      if (m.cohortIntent) acc[m.cohortIntent] = (acc[m.cohortIntent] ?? 0) + 1
+      return acc
+    },
+    {} as Record<string, number>
+  )
+  const dominantDraftIntent = Object.entries(draftIntentCounts).sort(
+    ([, a], [, b]) => b - a
+  )[0]?.[0] ?? null
+
+  // Filtered by search — same-intent users sorted first
   const eligibleUsers = useMemo(() => {
     const base = poolUsers.filter((u) => !currentIds.has(u.id))
-    if (!addSearch.trim()) return base
-    const q = addSearch.toLowerCase()
-    return base.filter(
-      (u) =>
-        memberFullName(u).toLowerCase().includes(q) ||
-        u.driveProfile.archetype?.toLowerCase().includes(q)
-    )
-  }, [poolUsers, currentIds, addSearch])
+    const filtered = !addSearch.trim()
+      ? base
+      : (() => {
+          const q = addSearch.toLowerCase()
+          return base.filter(
+            (u) =>
+              memberFullName(u).toLowerCase().includes(q) ||
+              u.driveProfile.archetype?.toLowerCase().includes(q) ||
+              (u.cohortIntent ?? "").toLowerCase().includes(q)
+          )
+        })()
+    // Sort: same-intent users first, then others, then null-intent
+    if (dominantDraftIntent) {
+      return [...filtered].sort((a, b) => {
+        const aMatch = a.cohortIntent === dominantDraftIntent ? 0 : a.cohortIntent ? 1 : 2
+        const bMatch = b.cohortIntent === dominantDraftIntent ? 0 : b.cohortIntent ? 1 : 2
+        return aMatch - bMatch
+      })
+    }
+    return filtered
+  }, [poolUsers, currentIds, addSearch, dominantDraftIntent])
 
   // What member is being replaced (if any)
   const replacingId =
@@ -478,6 +503,32 @@ function SuggestionCard({
                   {cohortThemeLabel(suggestion.themeAlignment)}
                 </span>
               )}
+              {/* Cohort intent label — show if all members share the same intent */}
+              {(() => {
+                const intents = [...new Set(draftMembers.map((m) => m.cohortIntent).filter(Boolean))]
+                if (intents.length === 1) {
+                  const intent = intents[0]
+                  return (
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
+                        intent === "social"
+                          ? "bg-brand-primary/10 border-brand-primary/25 text-brand-primary"
+                          : "bg-brand-accent/10 border-brand-accent/25 text-brand-accent"
+                      }`}
+                    >
+                      {intent === "social" ? "Social" : "Professional"}
+                    </span>
+                  )
+                }
+                if (intents.length > 1) {
+                  return (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium border bg-red-500/10 border-red-500/25 text-red-400">
+                      Mixed type
+                    </span>
+                  )
+                }
+                return null
+              })()}
               {isManuallyEdited && !isApproved && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-medium">
                   Manually edited
@@ -582,6 +633,20 @@ function SuggestionCard({
                 </div>
               )}
 
+              {/* ── Mixed cohort-type warning ─────────────── */}
+              {!isApproved && (() => {
+                const intents = [...new Set(draftMembers.map((m) => m.cohortIntent).filter(Boolean))]
+                if (intents.length > 1) {
+                  return (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs border bg-red-500/10 border-red-500/20 text-red-400">
+                      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                      Mixed cohort type: Social and Professional members. Consider keeping each type separate for better fit.
+                    </div>
+                  )
+                }
+                return null
+              })()}
+
               {/* ── Duplicate warning ─────────────────────── */}
               {dupWarning && (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs border bg-brand-error/10 border-brand-error/30 text-brand-error">
@@ -653,7 +718,7 @@ function SuggestionCard({
                     </div>
 
                     {/* Search */}
-                    <div className="px-4 pt-3 pb-2">
+                    <div className="px-4 pt-3 pb-2 space-y-2">
                       <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-surface border border-brand-border">
                         <Search className="w-3.5 h-3.5 text-brand-text-subtle flex-shrink-0" />
                         <input
@@ -661,10 +726,22 @@ function SuggestionCard({
                           type="text"
                           value={addSearch}
                           onChange={(e) => onSearchChange(e.target.value)}
-                          placeholder="Search by name or archetype…"
+                          placeholder="Search by name, archetype, or type…"
                           className="flex-1 bg-transparent text-sm text-brand-text placeholder:text-brand-text-subtle outline-none"
                         />
                       </div>
+                      {dominantDraftIntent && (
+                        <p className="text-[10px] text-brand-text-subtle px-1">
+                          <span
+                            className={`font-semibold ${
+                              dominantDraftIntent === "social" ? "text-brand-primary" : "text-brand-accent"
+                            }`}
+                          >
+                            {dominantDraftIntent === "social" ? "Social (S)" : "Professional (P)"}
+                          </span>{" "}
+                          members listed first · dimmed rows have a different type
+                        </p>
+                      )}
                     </div>
 
                     {/* User list */}
@@ -681,6 +758,7 @@ function SuggestionCard({
                             <PickerRow
                               key={user.id}
                               user={user}
+                              dominantIntent={dominantDraftIntent}
                               onSelect={() => {
                                 if (replacingId) {
                                   onReplaceMember(replacingId, user)
@@ -809,6 +887,18 @@ function MemberCard({ member, isApproved, onRemove, onReplace }: MemberCardProps
       <p className="text-xs text-brand-text-subtle mt-0.5">
         {member.driveProfile.archetype}
       </p>
+      {/* Cohort intent badge */}
+      {member.cohortIntent && (
+        <span
+          className={`inline-block mt-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider border ${
+            member.cohortIntent === "social"
+              ? "bg-brand-primary/10 border-brand-primary/25 text-brand-primary"
+              : "bg-brand-accent/10 border-brand-accent/25 text-brand-accent"
+          }`}
+        >
+          {member.cohortIntent === "social" ? "Social" : "Pro"}
+        </span>
+      )}
       <p className="text-xs text-brand-text-subtle mt-0.5">
         Ambition: {Math.round(member.driveProfile.ambition)}
       </p>
@@ -843,17 +933,44 @@ interface PickerRowProps {
   user: MatchableUser
   onSelect: () => void
   actionLabel: "Add" | "Replace"
+  /** If provided, rows whose intent differs from this value get a soft mismatch hint */
+  dominantIntent?: string | null
 }
 
-function PickerRow({ user, onSelect, actionLabel }: PickerRowProps) {
+function PickerRow({ user, onSelect, actionLabel, dominantIntent }: PickerRowProps) {
+  const intentMismatch =
+    dominantIntent &&
+    user.cohortIntent &&
+    user.cohortIntent !== dominantIntent
+
   return (
-    <div className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-brand-surface transition-colors">
+    <div
+      className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
+        intentMismatch ? "opacity-60" : "hover:bg-brand-surface"
+      }`}
+    >
       <div className="flex items-center gap-2.5">
         <div className="w-7 h-7 rounded-full bg-brand-primary/15 flex items-center justify-center text-xs font-bold text-brand-primary flex-shrink-0">
           {memberInitials(user)}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-medium text-brand-text truncate">{memberFullName(user)}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-medium text-brand-text truncate">{memberFullName(user)}</p>
+            {user.cohortIntent && (
+              <span
+                className={`flex-shrink-0 rounded-full px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider border ${
+                  user.cohortIntent === "social"
+                    ? "bg-brand-primary/10 border-brand-primary/25 text-brand-primary"
+                    : "bg-brand-accent/10 border-brand-accent/25 text-brand-accent"
+                }`}
+              >
+                {user.cohortIntent === "social" ? "S" : "P"}
+              </span>
+            )}
+            {intentMismatch && (
+              <span className="flex-shrink-0 text-[9px] text-red-400 font-medium">mismatch</span>
+            )}
+          </div>
           <p className="text-xs text-brand-text-subtle truncate">{user.driveProfile.archetype}</p>
         </div>
       </div>

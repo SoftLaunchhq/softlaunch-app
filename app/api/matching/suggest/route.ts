@@ -59,17 +59,26 @@ export async function POST() {
       )
     }
 
-    // Cast to MatchableUser format
+    // Cast to MatchableUser format (includes cohortIntent via raw cast)
     const matchableUsers: MatchableUser[] = poolUsers
       .filter((u) => u.driveProfile !== null)
       .map((u) => ({
         id: u.id,
+        cohortIntent: (u as any).cohortIntent ?? null,
         profile: u.profile,
         driveProfile: u.driveProfile!,
         cohortPrefs: u.cohortPrefs,
       }))
 
-    // Run matching algorithm
+    // Log intent distribution for observability
+    const intentCounts = {
+      social: matchableUsers.filter((u) => u.cohortIntent === "social").length,
+      professional: matchableUsers.filter((u) => u.cohortIntent === "professional").length,
+      none: matchableUsers.filter((u) => !u.cohortIntent).length,
+    }
+    console.log(`[matching] Intent distribution:`, intentCounts)
+
+    // Run matching algorithm (intent-aware partitioning happens inside suggestCohorts)
     const suggestions = suggestCohorts(matchableUsers, 5)
 
     // Log admin action
@@ -82,6 +91,7 @@ export async function POST() {
           poolSize: poolUsers.length,
           suggestionsCount: suggestions.length,
           topScore: suggestions[0]?.compatibilityScore,
+          intentDistribution: intentCounts,
         },
       },
     })

@@ -6,7 +6,7 @@ import { PendingCohortState } from "@/components/dashboard/PendingCohortState"
 import { CohortView } from "@/components/dashboard/CohortView"
 import { UpgradePrompt } from "@/components/dashboard/UpgradePrompt"
 import { DbErrorPrompt } from "@/components/dashboard/DbErrorPrompt"
-import { CalendarDays, CreditCard, UsersRound } from "lucide-react"
+import { CalendarDays, CreditCard, UsersRound, SplitSquareHorizontal } from "lucide-react"
 
 // ─────────────────────────────────────────────────────────────
 // TYPES
@@ -276,6 +276,24 @@ export default async function DashboardPage() {
   const hasActiveSubscription = subscription?.status === "ACTIVE"
   const isWeek2Plus = weekAccessLevel >= 2
 
+  // Cohort intent — DB field (may not exist in Prisma client yet) OR cookie fallback
+  // intentCookie is already read above for the gate; re-read safely here for display
+  const intentCookieValue = (() => {
+    try {
+      return cookies().get("sl_cohort_intent")?.value ?? null
+    } catch {
+      return null
+    }
+  })()
+  const cohortIntentValue =
+    (user as any).cohortIntent ?? intentCookieValue ?? null
+  const cohortIntentLabel =
+    cohortIntentValue === "social"
+      ? "Social"
+      : cohortIntentValue === "professional"
+      ? "Professional"
+      : "Not set"
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -288,7 +306,7 @@ export default async function DashboardPage() {
           {cohort ? `${cohort.name} · Week ${cohort.currentWeek}` : "You're in the queue."}
         </p>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             icon={<UsersRound className="h-4 w-4" />}
             iconBg="bg-brand-primary/10 text-brand-primary"
@@ -306,6 +324,18 @@ export default async function DashboardPage() {
             iconBg="bg-brand-secondary/10 text-brand-secondary"
             label="Billing"
             value={subscription?.status === "ACTIVE" ? "Subscribed" : "Week 1 trial"}
+          />
+          <StatCard
+            icon={<SplitSquareHorizontal className="h-4 w-4" />}
+            iconBg={
+              cohortIntentValue === "social"
+                ? "bg-brand-primary/10 text-brand-primary"
+                : cohortIntentValue === "professional"
+                ? "bg-brand-accent/10 text-brand-accent"
+                : "bg-brand-border/20 text-brand-text-subtle"
+            }
+            label="Cohort Type"
+            value={cohortIntentLabel}
           />
         </div>
       </div>

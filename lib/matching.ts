@@ -24,6 +24,7 @@ import type {
 
 export interface MatchableUser {
   id: string
+  cohortIntent?: string | null  // "social" | "professional" | null
   profile: {
     firstName: string
     lastName: string
@@ -151,9 +152,9 @@ export function themeAlignmentScore(users: MatchableUser[]): {
 }
 
 /**
- * Calculate overall cohort compatibility score for a group of 4.
+ * Calculate overall cohort compatibility score for a group.
  *
- * Uses all C(4,2) = 6 pairwise combinations.
+ * Uses all C(N,2) pairwise combinations (designed for groups of 4).
  */
 export function cohortCompatibilityScore(users: MatchableUser[]): {
   score: number
@@ -161,8 +162,8 @@ export function cohortCompatibilityScore(users: MatchableUser[]): {
   warnings: string[]
   themeAlignment: CohortTheme | null
 } {
-  if (users.length !== 4) {
-    throw new Error("Cohort must have exactly 4 members")
+  if (users.length < 2) {
+    throw new Error("Cohort must have at least 2 members")
   }
 
   // Generate all 6 pairs
@@ -222,6 +223,16 @@ export function cohortCompatibilityScore(users: MatchableUser[]): {
     warnings.push("Most members haven't specified a cohort theme preference")
   }
 
+  // Mixed cohort-intent warning
+  const intentSet = new Set(
+    users.map((u) => u.cohortIntent).filter((i): i is string => Boolean(i))
+  )
+  if (intentSet.size > 1) {
+    warnings.push(
+      "Mixed cohort type: Social and Professional members in the same group. Review before approving."
+    )
+  }
+
   return {
     score: finalScore,
     pairScores,
@@ -249,8 +260,13 @@ function combinations<T>(arr: T[], k: number): T[][] {
 /**
  * Main matching function.
  *
- * For MVP (≤ 20 users): exhaustive search of all C(N,4) combinations
- * For V2 (100+ users): implement greedy + local search
+ * Partitions users by cohortIntent (social/professional) and runs matching
+ * within each group first. Users in the same-intent group never get mixed
+ * with the opposite type unless there are not enough to form a complete cohort.
+ * Null-intent users are assigned to the leftover mixed pool.
+ *
+ * For MVP (≤ 20 users per pool): exhaustive search
+ * For larger pools: greedy search
  *
  * Returns ranked list of cohort suggestions.
  */
@@ -258,12 +274,6 @@ export function suggestCohorts(
   users: MatchableUser[],
   maxSuggestions = 5
 ): CohortSuggestion[] {
-  if (users.length < 4) {
-    throw new Error(
-      `Need at least 4 users in matching pool. Currently have ${users.length}.`
-    )
-  }
-
   const matchingVersion = 1
 
   // Filter users who have completed assessments
@@ -275,13 +285,70 @@ export function suggestCohorts(
     )
   }
 
-  // For MVP: if N ≤ 16, use exhaustive search (C(16,4) = 1820 combinations)
-  // For larger pools, use greedy approach
-  if (eligibleUsers.length <= 16) {
-    return exhaustiveSearch(eligibleUsers, maxSuggestions, matchingVersion)
-  } else {
-    return greedySearch(eligibleUsers, maxSuggestions, matchingVersion)
+  // ── Partition by cohortIntent ─────────────────────────────────
+  const socialPool = eligibleUsers.filter((u) => u.cohortIntent === "social")
+  const professionalPool = eligibleUsers.filter((u) => u.cohortIntent === "professional")
+  // Null-intent users go to a spillover pool (matched after intent groups)
+  const nullPool = eligibleUsers.filter((u) => !u.cohortIntent)
+
+  const results: CohortSuggestion[] = []
+  const usedIds = new Set<string>()
+
+  /**
+   * Run the appropriate search strategy for a given pool and add
+   * non-overlapping suggestions to `results`, tracking used user IDs.
+   */
+  function runPool(pool: MatchableUser[], quota: number): void {
+    if (pool.length < 4 || quota <= 0) return
+    const poolSuggestions =
+      pool.length <= 16
+        ? exhaustiveSearch(pool, quota, matchingVersion)
+        : greedySearch(pool, quota, matchingVersion)
+
+    for (const s of poolSuggestions) {
+      if (results.length >= maxSuggestions) break
+      // Skip if any member was already placed in a previous suggestion
+      if (s.members.some((m) => usedIds.has(m.id))) continue
+      results.push(s)
+      s.members.forEach((m) => usedIds.add(m.id))
+    }
   }
+
+  // 1. Match social users with social users
+  runPool(socialPool, Math.ceil(maxSuggestions * 0.6))
+
+  // 2. Match professional users with professional users
+  runPool(professionalPool, Math.ceil(maxSuggestions * 0.6))
+
+  // 3. Build leftover pool: users not yet matched + null-intent users
+  if (results.length < maxSuggestions) {
+    const remainingUsers = eligibleUsers.filter((u) => !usedIds.has(u.id))
+    // remainingUsers includes: under-threshold intent users + null-intent users
+    if (remainingUsers.length >= 4) {
+      const quota = maxSuggestions - results.length
+      const leftoverSuggestions =
+        remainingUsers.length <= 16
+          ? exhaustiveSearch(remainingUsers, quota, matchingVersion)
+          : greedySearch(remainingUsers, quota, matchingVersion)
+
+      for (const s of leftoverSuggestions) {
+        if (results.length >= maxSuggestions) break
+        // These may contain mixed intents — the warning is added inside
+        // cohortCompatibilityScore already, but add an extra note if truly mixed
+        const intents = new Set(
+          s.members.map((m) => m.cohortIntent).filter((i): i is string => Boolean(i))
+        )
+        if (intents.size > 1 && !s.warnings.some((w) => w.includes("Mixed cohort type"))) {
+          s.warnings.push(
+            "Mixed cohort type: insufficient same-intent users to form separate groups."
+          )
+        }
+        results.push(s)
+      }
+    }
+  }
+
+  return results.sort((a, b) => b.compatibilityScore - a.compatibilityScore)
 }
 
 function exhaustiveSearch(

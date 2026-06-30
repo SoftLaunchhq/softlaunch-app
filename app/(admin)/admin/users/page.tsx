@@ -209,6 +209,33 @@ export default async function AdminUsersPage() {
                     >
                       {badge.label}
                     </span>
+                    {/* Cohort intent badge */}
+                    {(() => {
+                      const intent = (user as any).cohortIntent
+                      if (intent === "social") {
+                        return (
+                          <span className="inline-flex items-center rounded-full border border-brand-primary/30 bg-brand-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-primary">
+                            Social
+                          </span>
+                        )
+                      }
+                      if (intent === "professional") {
+                        return (
+                          <span className="inline-flex items-center rounded-full border border-brand-accent/30 bg-brand-accent/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-accent">
+                            Professional
+                          </span>
+                        )
+                      }
+                      // Only show "No type" badge for users who completed onboarding
+                      if (user.onboardingComplete) {
+                        return (
+                          <span className="inline-flex items-center rounded-full border border-brand-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-text-subtle">
+                            No type
+                          </span>
+                        )
+                      }
+                      return null
+                    })()}
                     {days >= 5 && !membership && user.onboardingComplete && (
                       <span className="inline-flex items-center rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-red-300">
                         {days}d waiting
