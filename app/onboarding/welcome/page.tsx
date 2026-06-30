@@ -120,7 +120,7 @@ export default function WelcomePage() {
           transition={{ delay: 0.5 }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => router.push("/onboarding/assessment")}
+          onClick={() => router.push("/onboarding/cohort-type")}
           className="sl-button w-full py-3.5 text-base justify-center"
         >
           Start the assessment

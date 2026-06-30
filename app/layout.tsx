@@ -87,16 +87,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         HTML may differ if the user has "light" stored. suppressHydrationWarning
         tells React to ignore this mismatch on the <html> element only.
       */}
-      <html lang="en" suppressHydrationWarning className="dark">
+      <html lang="en" suppressHydrationWarning className="light">
         <head>
           {/*
             No-flash theme script — runs synchronously before first paint.
             Reads localStorage and applies the correct class before React
-            hydrates, eliminating the dark→light flicker on page load.
+            hydrates, eliminating the light→dark flicker on page load.
+            Default when no preference is stored: light mode.
           */}
           <script
             dangerouslySetInnerHTML={{
-              __html: `(function(){try{var t=localStorage.getItem('sl-theme');if(t==='light'){document.documentElement.classList.add('light');document.documentElement.classList.remove('dark')}else{document.documentElement.classList.add('dark');document.documentElement.classList.remove('light')}}catch(e){}})()`,
+              __html: `(function(){try{var t=localStorage.getItem('sl-theme');if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.classList.remove('light')}else{document.documentElement.classList.add('light');document.documentElement.classList.remove('dark')}}catch(e){}})()`,
             }}
           />
         </head>

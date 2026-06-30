@@ -48,12 +48,13 @@ function applyTheme(t: Theme) {
 // ─────────────────────────────────────────────────────────────
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Default to dark — matches server render and no-flash inline script
-  const [theme, setTheme] = useState<Theme>("dark")
+  // Default to light — matches server render and no-flash inline script.
+  // Stored preference overrides this on hydration via the useEffect below.
+  const [theme, setTheme] = useState<Theme>("light")
 
   useEffect(() => {
-    // Read stored preference and sync the DOM class
-    let stored: Theme = "dark"
+    // Read stored preference; fall back to "light" if nothing is stored.
+    let stored: Theme = "light"
     try {
       const val = localStorage.getItem(STORAGE_KEY)
       if (val === "light" || val === "dark") stored = val

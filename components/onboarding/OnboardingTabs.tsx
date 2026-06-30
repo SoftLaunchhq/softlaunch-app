@@ -2,13 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { CheckCircle2, Compass, ListChecks, Sparkles, UserRound } from "lucide-react"
+import { CheckCircle2, Compass, ListChecks, Sparkles, UserRound, SplitSquareHorizontal } from "lucide-react"
 
 const items = [
-  { href: "/onboarding/welcome", label: "Welcome", icon: Compass },
-  { href: "/onboarding/assessment", label: "Assessment", icon: ListChecks },
-  { href: "/onboarding/reveal", label: "Profile Reveal", icon: Sparkles },
-  { href: "/onboarding/profile", label: "Your Profile", icon: UserRound },
+  { href: "/onboarding/welcome",     label: "Welcome",     icon: Compass },
+  { href: "/onboarding/cohort-type", label: "Cohort Type", icon: SplitSquareHorizontal },
+  { href: "/onboarding/assessment",  label: "Assessment",  icon: ListChecks },
+  { href: "/onboarding/reveal",      label: "Profile Reveal", icon: Sparkles },
+  { href: "/onboarding/profile",     label: "Your Profile", icon: UserRound },
 ]
 
 export function OnboardingTabs() {

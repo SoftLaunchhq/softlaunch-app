@@ -245,6 +245,17 @@ export default async function DashboardPage() {
   }
 
   const { user, psychProfile } = result
+
+  // ── cohortIntent gate ──────────────────────────────────────
+  // Users who completed onboarding before cohortIntent was added have
+  // cohortIntent = null. Redirect them once to choose Social or Professional.
+  // Admins/Founders bypass this (they may not go through member onboarding).
+  const isAdminUser =
+    (user as any).role === "ADMIN" || (user as any).role === "FOUNDER"
+  if (!isAdminUser && !(user as any).cohortIntent) {
+    redirect("/onboarding/cohort-type?returnTo=/dashboard")
+  }
+
   const activeMembership = user.memberships[0]
   const cohort = activeMembership?.cohort ?? null
   const subscription = user.subscription
