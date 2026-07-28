@@ -510,3 +510,73 @@ describe("Database safety patterns", () => {
     )
   })
 })
+
+// ─────────────────────────────────────────────────────────────
+// COHORT CHAT ROUTES — Auth + Raw SQL patterns
+// ─────────────────────────────────────────────────────────────
+
+describe("Cohort chat routes — auth + raw SQL safety", () => {
+  const messagesSrc = readFile("app/api/cohorts/[id]/messages/route.ts")
+  const buzzSrc = readFile("app/api/cohorts/[id]/buzz/route.ts")
+
+  it("messages route uses await auth() (Clerk v5 requires await)", () => {
+    assert.ok(
+      messagesSrc.includes("await auth()"),
+      "Messages route must use 'await auth()' — missing await causes clerkId to always be undefined"
+    )
+  })
+
+  it("BUZZ route uses await auth() (Clerk v5 requires await)", () => {
+    assert.ok(
+      buzzSrc.includes("await auth()"),
+      "BUZZ route must use 'await auth()' — missing await causes clerkId to always be undefined"
+    )
+  })
+
+  it("messages route uses raw SQL, not (db as any).cohortMessage", () => {
+    assert.ok(
+      !messagesSrc.includes("(db as any).cohortMessage"),
+      "Messages route must use $queryRaw/$executeRaw, not (db as any).cohortMessage which fails when prisma generate hasn't run"
+    )
+    assert.ok(
+      messagesSrc.includes("$queryRaw") || messagesSrc.includes("$executeRaw"),
+      "Messages route must use Prisma raw SQL for CohortMessage operations"
+    )
+  })
+
+  it("BUZZ route uses raw SQL, not (db as any).cohortMessage", () => {
+    assert.ok(
+      !buzzSrc.includes("(db as any).cohortMessage"),
+      "BUZZ route must use $queryRaw/$executeRaw, not (db as any).cohortMessage accessor"
+    )
+    assert.ok(
+      buzzSrc.includes("$queryRaw") || buzzSrc.includes("$executeRaw"),
+      "BUZZ route must use Prisma raw SQL for CohortMessage operations"
+    )
+  })
+
+  it("both routes auto-create the CohortMessage table on first use", () => {
+    assert.ok(
+      messagesSrc.includes("CREATE TABLE IF NOT EXISTS") || messagesSrc.includes("ensureCohortMessageTable"),
+      "Messages route must ensure the CohortMessage table exists before using it"
+    )
+    assert.ok(
+      buzzSrc.includes("CREATE TABLE IF NOT EXISTS") || buzzSrc.includes("ensureCohortMessageTable"),
+      "BUZZ route must ensure the CohortMessage table exists before using it"
+    )
+  })
+
+  it("BUZZ route has local fallback prompts (works without OpenAI)", () => {
+    assert.ok(
+      buzzSrc.includes("SOCIAL_BUZZ_PROMPTS") && buzzSrc.includes("PROFESSIONAL_BUZZ_PROMPTS"),
+      "BUZZ route must have local fallback prompt pools for both social and professional cohorts"
+    )
+  })
+
+  it("BUZZ route enriches context with member drive profiles", () => {
+    assert.ok(
+      buzzSrc.includes("driveProfile"),
+      "BUZZ route should enrich its context with member drive profiles for better facilitation"
+    )
+  })
+})

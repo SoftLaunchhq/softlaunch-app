@@ -45,17 +45,20 @@ export default async function CohortDetailPage({ params }: { params: { id: strin
 
   if (!cohort) notFound()
 
-  // Fetch chat messages for admin view (last 30)
+  // Fetch chat messages for admin view (last 30) via raw SQL
+  // Raw SQL bypasses the Prisma client type check — works even before prisma generate.
+  // Wrapped in try/catch: table may not exist yet on first deploy.
   let chatMessages: Array<{
     id: string; senderType: string; senderName: string | null; content: string; createdAt: Date
   }> = []
   try {
-    chatMessages = await (db as any).cohortMessage.findMany({
-      where: { cohortId: params.id },
-      orderBy: { createdAt: "asc" },
-      take: 30,
-      select: { id: true, senderType: true, senderName: true, content: true, createdAt: true },
-    })
+    chatMessages = await db.$queryRaw`
+      SELECT "id", "senderType", "senderName", "content", "createdAt"
+      FROM "CohortMessage"
+      WHERE "cohortId" = ${params.id}
+      ORDER BY "createdAt" ASC
+      LIMIT 30
+    `
   } catch {
     // Table may not exist yet if migration hasn't run — fail silently for admin
     chatMessages = []
