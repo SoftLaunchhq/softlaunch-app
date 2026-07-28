@@ -138,6 +138,7 @@ model User {
   buzzConversations BuzzConversation[]
   behavioralSignals BehavioralSignal[]
   sentMessages   Message[]        @relation("MessageSender")
+  chatMessages   CohortMessage[]  @relation("CohortMessageSender")
 
   // 1-on-1 matching
   oneOnOneMatchesAsA OneOnOneMatch[] @relation("OneOnOneMatchUserA")
@@ -318,6 +319,7 @@ model Cohort {
   adminActions AdminAction[]
   payments     Payment[]
   threads      ConversationThread[]
+  chatMessages CohortMessage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -715,6 +717,34 @@ model Message {
   createdAt DateTime @default(now())
 
   @@index([threadId])
+  @@index([senderId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// COHORT CHAT
+// Shared conversation space for each active cohort.
+// BUZZ AI facilitates as a named participant.
+// senderType: "MEMBER" = human, "BUZZ" = AI facilitator
+// senderId is null when senderType = "BUZZ"
+// ─────────────────────────────────────────────────────────────
+
+model CohortMessage {
+  id         String  @id @default(cuid())
+  cohortId   String
+  cohort     Cohort  @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  // Sender — null for BUZZ messages
+  senderId   String?
+  sender     User?   @relation("CohortMessageSender", fields: [senderId], references: [id])
+  senderType String  @default("MEMBER") // "MEMBER" | "BUZZ"
+
+  // Denormalized display name — snapshot at send time so it survives profile changes
+  senderName String?
+
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([cohortId, createdAt])
   @@index([senderId])
 }
 

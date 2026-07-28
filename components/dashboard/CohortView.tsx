@@ -13,10 +13,12 @@ import {
   LayoutDashboard,
   Sparkles,
   Wrench,
+  Zap,
 } from "lucide-react"
 import { MemberCard } from "./MemberCard"
 import { PromptCard } from "./PromptCard"
 import { FeedbackModal } from "./FeedbackModal"
+import { CohortChat } from "./CohortChat"
 import { cohortThemeLabel } from "@/lib/utils"
 import type { Cohort, CohortMembership, Subscription } from "@prisma/client"
 
@@ -26,6 +28,7 @@ interface Props {
   membershipStatus: string
   weekAccessLevel: number
   subscription: Subscription | null
+  showChat?: boolean // Pre-opens the chat tab if true
 }
 
 const WEEK_LABELS = ["", "Week 1", "Week 2", "Week 3", "Week 4"]
@@ -36,9 +39,12 @@ export function CohortView({
   membershipStatus,
   weekAccessLevel,
   subscription,
+  showChat = false,
 }: Props) {
   const [showFeedback, setShowFeedback] = useState(false)
-  const [activeTab, setActiveTab] = useState<"overview" | "members" | "prompt" | "tools">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "members" | "prompt" | "tools" | "chat">(
+    showChat ? "chat" : "overview"
+  )
 
   const otherMembers = cohort.memberships.filter(
     (m: any) => m.userId !== currentUserId
@@ -52,6 +58,7 @@ export function CohortView({
     { key: "overview" as const, label: "Overview", icon: LayoutDashboard },
     { key: "members" as const, label: "Members", icon: Users2 },
     { key: "prompt" as const, label: "Prompt", icon: Sparkles, disabled: !canSeePrompt },
+    { key: "chat" as const, label: "Chat", icon: Zap },
     { key: "tools" as const, label: "Tools", icon: Wrench },
   ]
 
@@ -164,7 +171,7 @@ export function CohortView({
         transition={{ delay: 0.1 }}
         className="neon-panel p-3"
       >
-        <div className="mb-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+        <div className="mb-3 grid grid-cols-3 gap-2 md:grid-cols-5">
           {tabs.map((tab) => (
             <motion.button
               key={tab.key}
@@ -213,6 +220,27 @@ export function CohortView({
                   {canSeePrompt ? "Submit this week's reflection prompt." : "Complete Week 1 to unlock next prompt."}
                 </p>
               </div>
+
+              {/* Chat CTA */}
+              <button
+                type="button"
+                onClick={() => setActiveTab("chat")}
+                className="md:col-span-2 flex items-center gap-4 rounded-xl border border-cyan-300/25 bg-cyan-300/8 p-4 text-left hover:bg-cyan-300/12 transition-colors group"
+              >
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-[0_0_16px_rgba(34,211,238,0.15)]"
+                  style={{ background: "linear-gradient(135deg, #1DB896, #7CC455)" }}
+                >
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-brand-text">Open Group Chat</p>
+                  <p className="text-xs text-brand-text-subtle mt-0.5">
+                    Chat with your cohort · BUZZ AI facilitates
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-brand-text-subtle group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
+              </button>
             </div>
           )}
 
@@ -239,6 +267,15 @@ export function CohortView({
                 Prompt unlocks when your access level reaches this week.
               </p>
             </div>
+          )}
+
+          {activeTab === "chat" && (
+            <CohortChat
+              cohortId={cohort.id}
+              currentUserId={currentUserId}
+              cohortName={cohort.name}
+              activePrompt={activePrompt ?? null}
+            />
           )}
 
           {activeTab === "tools" && (

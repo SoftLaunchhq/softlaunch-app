@@ -4,7 +4,7 @@ import { formatDate, cohortThemeLabel, formatCurrency } from "@/lib/utils"
 import Link from "next/link"
 import { CohortAdminActions } from "@/components/admin/CohortAdminActions"
 import { PromptSender } from "@/components/admin/PromptSender"
-import { ArrowLeft, ExternalLink } from "lucide-react"
+import { ArrowLeft, ExternalLink, Zap, MessageCircle } from "lucide-react"
 
 export default async function CohortDetailPage({ params }: { params: { id: string } }) {
   const cohort = await db.cohort.findUnique({
@@ -44,6 +44,22 @@ export default async function CohortDetailPage({ params }: { params: { id: strin
   })
 
   if (!cohort) notFound()
+
+  // Fetch chat messages for admin view (last 30)
+  let chatMessages: Array<{
+    id: string; senderType: string; senderName: string | null; content: string; createdAt: Date
+  }> = []
+  try {
+    chatMessages = await (db as any).cohortMessage.findMany({
+      where: { cohortId: params.id },
+      orderBy: { createdAt: "asc" },
+      take: 30,
+      select: { id: true, senderType: true, senderName: true, content: true, createdAt: true },
+    })
+  } catch {
+    // Table may not exist yet if migration hasn't run — fail silently for admin
+    chatMessages = []
+  }
 
   const avgFeedbackScore = cohort.feedbacks.length
     ? cohort.feedbacks.reduce((sum, f) => sum + (f.sessionRating || 0), 0) /
@@ -233,6 +249,66 @@ export default async function CohortDetailPage({ params }: { params: { id: strin
           {/* Prompt sender */}
           <PromptSender cohortId={cohort.id} currentWeek={cohort.currentWeek} existingPrompts={cohort.weeklyPrompts} />
         </div>
+      </div>
+
+      {/* Chat Messages — Admin Read-Only View */}
+      <div className="rounded-xl border border-brand-border bg-brand-surface p-6">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #1DB896, #7CC455)" }}
+          >
+            <Zap className="w-3.5 h-3.5 text-white" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-brand-text">Group Chat</h2>
+            <p className="text-xs text-brand-text-subtle">
+              {chatMessages.length} messages · Read-only admin view
+            </p>
+          </div>
+        </div>
+
+        {chatMessages.length === 0 ? (
+          <div className="flex items-center justify-center gap-2 py-8 text-brand-text-subtle">
+            <MessageCircle className="w-4 h-4" />
+            <span className="text-sm">No messages yet</span>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {chatMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`rounded-lg px-3.5 py-2.5 text-sm ${
+                  msg.senderType === "BUZZ"
+                    ? "bg-cyan-300/8 border border-cyan-300/20 text-center"
+                    : "bg-brand-bg/60 border border-brand-border"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-0.5">
+                  {msg.senderType === "BUZZ" && (
+                    <span className="text-[11px] font-semibold text-cyan-300 uppercase tracking-wider">
+                      BUZZ ·
+                    </span>
+                  )}
+                  {msg.senderType !== "BUZZ" && (
+                    <span className="text-[11px] font-medium text-brand-text-subtle">
+                      {msg.senderName || "Member"} ·
+                    </span>
+                  )}
+                  <span className="text-[10px] text-brand-text-subtle">
+                    {new Date(msg.createdAt).toLocaleString([], {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+                <p className="text-brand-text leading-relaxed">{msg.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
