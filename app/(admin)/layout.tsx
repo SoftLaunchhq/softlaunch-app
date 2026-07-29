@@ -25,12 +25,34 @@ export default async function AdminLayout({
   // Check admin role
   const user = await db.user.findUnique({
     where: { clerkId },
-    select: { role: true },
+    select: { role: true, email: true },
   })
 
-  if (!user || (user.role !== "ADMIN" && user.role !== "FOUNDER")) {
-    redirect("/dashboard")
+  if (!user) redirect("/dashboard")
+
+  let isAdmin = user.role === "ADMIN" || user.role === "FOUNDER"
+
+  // Fallback: if the user's email is in ADMIN_EMAILS but their DB role hasn't been
+  // synced yet (e.g. they registered before the email was added to the env var),
+  // promote them now. This is server-side — email comes from the DB, not the client.
+  if (!isAdmin) {
+    const adminEmails = (process.env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+
+    if (adminEmails.includes(user.email.toLowerCase())) {
+      // Lazy DB sync: bring the record in line with the env var so future
+      // requests use the fast DB-role path and the webhook is no longer needed.
+      await db.user.update({
+        where: { clerkId },
+        data: { role: "ADMIN" },
+      })
+      isAdmin = true
+    }
   }
+
+  if (!isAdmin) redirect("/dashboard")
 
   const navItems = [
     { href: "/admin",          icon: LayoutDashboard, label: "Overview" },
