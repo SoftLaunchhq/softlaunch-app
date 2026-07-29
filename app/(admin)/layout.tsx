@@ -22,33 +22,61 @@ export default async function AdminLayout({
   const { userId: clerkId } = await auth()
   if (!clerkId) redirect("/sign-in")
 
-  // Check admin role
+  // ── Check admin role ──────────────────────────────────────────────
+  // We look up both role AND email so we can fall back to ADMIN_EMAILS
+  // if the DB role hasn't been promoted yet.
   const user = await db.user.findUnique({
     where: { clerkId },
     select: { role: true, email: true },
   })
 
-  if (!user) redirect("/dashboard")
+  // ── Diagnostic logging (safe — no secrets printed) ────────────────
+  // Appears in Vercel function logs. Disable after confirming root cause.
+  const adminEmailsRaw = process.env.ADMIN_EMAILS || ""
+  const adminEmails = adminEmailsRaw
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+
+  console.log("[ADMIN ACCESS]", {
+    clerkIdPresent: !!clerkId,
+    dbUserFound: !!user,
+    dbRole: user?.role ?? "N/A",
+    dbEmailPresent: !!user?.email,
+    adminEmailsConfigured: adminEmails.length > 0,
+    adminEmailsCount: adminEmails.length,
+    emailMatchesAdminList: user?.email
+      ? adminEmails.includes(user.email.toLowerCase())
+      : false,
+  })
+
+  if (!user) {
+    console.log("[ADMIN ACCESS] DENIED — no DB record for clerkId")
+    redirect("/dashboard")
+  }
 
   let isAdmin = user.role === "ADMIN" || user.role === "FOUNDER"
 
   // Fallback: if the user's email is in ADMIN_EMAILS but their DB role hasn't been
-  // synced yet (e.g. they registered before the email was added to the env var),
-  // promote them now. This is server-side — email comes from the DB, not the client.
+  // synced yet (e.g. they registered before the email was added to the env var,
+  // or ADMIN_EMAILS was set after account creation), promote them now.
+  // This is server-side — email comes from the DB, not from the client.
   if (!isAdmin) {
-    const adminEmails = (process.env.ADMIN_EMAILS || "")
-      .split(",")
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean)
-
     if (adminEmails.includes(user.email.toLowerCase())) {
-      // Lazy DB sync: bring the record in line with the env var so future
-      // requests use the fast DB-role path and the webhook is no longer needed.
-      await db.user.update({
-        where: { clerkId },
-        data: { role: "ADMIN" },
-      })
-      isAdmin = true
+      console.log("[ADMIN ACCESS] Promoting via ADMIN_EMAILS fallback — syncing DB role")
+      try {
+        await db.user.update({
+          where: { clerkId },
+          data: { role: "ADMIN" },
+        })
+        isAdmin = true
+        console.log("[ADMIN ACCESS] DB role updated to ADMIN successfully")
+      } catch (err: any) {
+        console.error("[ADMIN ACCESS] DB role update failed:", err?.message?.slice(0, 200))
+        // Do not fall through to grant access if update failed
+      }
+    } else {
+      console.log("[ADMIN ACCESS] DENIED — role is USER and email not in ADMIN_EMAILS")
     }
   }
 

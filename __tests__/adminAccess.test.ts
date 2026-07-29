@@ -302,3 +302,101 @@ describe("Auto-create paths — ADMIN_EMAILS applied at creation", () => {
     )
   })
 })
+
+// ─── 9. Admin layout — diagnostic logging ────────────────────────────────────
+
+describe("Admin layout — diagnostic logging", () => {
+  it("logs ADMIN ACCESS diagnostics without exposing secrets", () => {
+    const src = readSrc("app/(admin)/layout.tsx")
+    assert.ok(src.includes("[ADMIN ACCESS]"), "Must have safe diagnostic logging")
+    assert.ok(!src.includes("CLERK_SECRET"), "Must not log Clerk secret")
+    assert.ok(!src.includes("DATABASE_URL"), "Must not log DB connection string")
+    assert.ok(!src.includes("process.env.CLERK"), "Must not log Clerk env vars")
+  })
+
+  it("catches and logs DB update errors without crashing", () => {
+    const src = readSrc("app/(admin)/layout.tsx")
+    // The DB update must be in a try/catch so failures don't expose errors to users
+    assert.ok(src.includes("try {"), "DB update must be wrapped in try/catch")
+    assert.ok(src.includes("catch (err"), "Must catch DB update errors")
+    assert.ok(src.includes("console.error"), "Must log update errors server-side")
+  })
+})
+
+// ─── 10. Admin seed-roles API ────────────────────────────────────────────────
+
+describe("Admin seed-roles API — file existence and security", () => {
+  it("route file exists", () => {
+    const p = path.join(ROOT, "app/api/admin/seed-roles/route.ts")
+    assert.ok(fs.existsSync(p), "Seed-roles route must exist")
+  })
+
+  it("requires ADMIN_SEED_SECRET env var — not open to anyone", () => {
+    const src = readSrc("app/api/admin/seed-roles/route.ts")
+    assert.ok(
+      src.includes("ADMIN_SEED_SECRET"),
+      "Must gate on ADMIN_SEED_SECRET secret token"
+    )
+  })
+
+  it("only promotes to ADMIN — never writes USER", () => {
+    const src = readSrc("app/api/admin/seed-roles/route.ts")
+    // Must have promotion to ADMIN
+    assert.ok(src.includes('role: "ADMIN"'), "Must promote to ADMIN role")
+    // Must not write USER role
+    assert.ok(!src.includes('data: { role: "USER"'), "Must never write USER role")
+  })
+
+  it("masks emails in response — no plaintext exposure", () => {
+    const src = readSrc("app/api/admin/seed-roles/route.ts")
+    assert.ok(src.includes("mask("), "Must mask emails before returning in response")
+  })
+
+  it("does not expose DATABASE_URL or secrets in response", () => {
+    const src = readSrc("app/api/admin/seed-roles/route.ts")
+    assert.ok(!src.includes("DATABASE_URL"), "Must not expose DATABASE_URL")
+    assert.ok(!src.includes("CLERK_SECRET"), "Must not expose Clerk secret")
+  })
+
+  it("blocks GET method", () => {
+    const src = readSrc("app/api/admin/seed-roles/route.ts")
+    assert.ok(
+      src.includes("Method not allowed"),
+      "GET must be blocked to prevent accidental triggering"
+    )
+  })
+})
+
+// ─── 11. Admin diagnose API ──────────────────────────────────────────────────
+
+describe("Admin diagnose API — file existence and security", () => {
+  it("route file exists", () => {
+    const p = path.join(ROOT, "app/api/admin/diagnose/route.ts")
+    assert.ok(fs.existsSync(p), "Diagnose route must exist")
+  })
+
+  it("requires Clerk authentication", () => {
+    const src = readSrc("app/api/admin/diagnose/route.ts")
+    assert.ok(src.includes("await auth()"), "Must require Clerk auth")
+    assert.ok(src.includes("Not signed in"), "Must reject unauthenticated callers")
+  })
+
+  it("masks email in response", () => {
+    const src = readSrc("app/api/admin/diagnose/route.ts")
+    assert.ok(src.includes("mask("), "Must mask email before including in response")
+  })
+
+  it("does not read or return the value of DATABASE_URL or secrets", () => {
+    const src = readSrc("app/api/admin/diagnose/route.ts")
+    // May mention DATABASE_URL by name in advice strings, but must never read its value
+    assert.ok(!src.includes("process.env.DATABASE_URL"), "Must not read DATABASE_URL value")
+    assert.ok(!src.includes("process.env.CLERK_SECRET"), "Must not read Clerk secret value")
+    assert.ok(!src.includes("process.env.ADMIN_SEED_SECRET"), "Must not expose seed secret value")
+  })
+
+  it("checks ADMIN_EMAILS env var and reports count — not value", () => {
+    const src = readSrc("app/api/admin/diagnose/route.ts")
+    assert.ok(src.includes("ADMIN_EMAILS"), "Must check ADMIN_EMAILS")
+    assert.ok(src.includes(".length"), "Must report count, not raw value")
+  })
+})
