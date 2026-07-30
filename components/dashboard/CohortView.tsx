@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   MessageCircle,
@@ -14,13 +15,16 @@ import {
   Sparkles,
   Wrench,
   Zap,
+  LogOut,
 } from "lucide-react"
 import { MemberCard } from "./MemberCard"
 import { PromptCard } from "./PromptCard"
 import { FeedbackModal } from "./FeedbackModal"
 import { CohortChat } from "./CohortChat"
+import { DepartureModal } from "./DepartureModal"
+import { AvailabilityPanel } from "./AvailabilityPanel"
 import { cohortThemeLabel } from "@/lib/utils"
-import type { Cohort, CohortMembership, Subscription } from "@prisma/client"
+import type { Subscription } from "@prisma/client"
 
 interface Props {
   cohort: any // Full cohort with relations
@@ -41,8 +45,10 @@ export function CohortView({
   subscription,
   showChat = false,
 }: Props) {
+  const router = useRouter()
   const [showFeedback, setShowFeedback] = useState(false)
-  const [activeTab, setActiveTab] = useState<"overview" | "members" | "prompt" | "tools" | "chat">(
+  const [showDeparture, setShowDeparture] = useState(false)
+  const [activeTab, setActiveTab] = useState<"overview" | "members" | "prompt" | "availability" | "chat" | "tools">(
     showChat ? "chat" : "overview"
   )
 
@@ -58,12 +64,23 @@ export function CohortView({
     { key: "overview" as const, label: "Overview", icon: LayoutDashboard },
     { key: "members" as const, label: "Members", icon: Users2 },
     { key: "prompt" as const, label: "Prompt", icon: Sparkles, disabled: !canSeePrompt },
+    { key: "availability" as const, label: "Availability", icon: Calendar },
     { key: "chat" as const, label: "Chat", icon: Zap },
     { key: "tools" as const, label: "Tools", icon: Wrench },
   ]
 
   return (
     <div className="space-y-6">
+      {/* Departure modal */}
+      {showDeparture && (
+        <DepartureModal
+          cohortId={cohort.id}
+          cohortName={cohort.name}
+          onClose={() => setShowDeparture(false)}
+          onConfirm={() => router.push("/dashboard")}
+        />
+      )}
+
       {/* Cohort header */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -92,6 +109,15 @@ export function CohortView({
             <p className="text-xs uppercase tracking-wider text-brand-text-subtle">Cohort size</p>
             <p className="font-medium text-brand-text">{otherMembers.length + 1} people</p>
           </div>
+          {/* Leave cohort */}
+          <button
+            onClick={() => setShowDeparture(true)}
+            className="ml-2 flex items-center gap-1.5 rounded-lg border border-rose-500/20 px-2.5 py-1.5 text-xs font-medium text-rose-400/70 hover:border-rose-500/40 hover:text-rose-300 transition-colors"
+            title="Leave this cohort"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Leave
+          </button>
         </div>
       </motion.div>
 
@@ -266,6 +292,23 @@ export function CohortView({
               <p className="text-sm text-brand-text-muted">
                 Prompt unlocks when your access level reaches this week.
               </p>
+            </div>
+          )}
+
+          {activeTab === "availability" && (
+            <div className="neon-panel overflow-hidden">
+              <div className="border-b border-brand-border/40 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-brand-text-subtle">
+                  Your Availability
+                </p>
+                <p className="mt-0.5 text-xs text-brand-text-muted">
+                  Keep this up to date so BUZZ can find a meetup time that works for everyone.
+                </p>
+              </div>
+              <AvailabilityPanel
+                cohortId={cohort.id}
+                onSaved={() => setActiveTab("chat")}
+              />
             </div>
           )}
 

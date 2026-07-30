@@ -266,6 +266,11 @@ model CohortPreferences {
   // Availability
   preferredDays String[] // ["monday", "wednesday", "thursday"]
   preferredTime String?  // "mornings", "evenings", "weekends"
+  timezone      String?  // e.g. "America/New_York"
+
+  // Favorite meetup location
+  favoriteLocationType String?        // "coffee" | "library" | "coworking" | "restaurant" | "park" | "campus" | "bookstore" | "other"
+  favoriteLocationText String? @db.Text // free-text description
 
   // Open to meeting with:
   remoteOk    Boolean @default(false) // willing to do virtual cohorts
@@ -810,4 +815,125 @@ model OneOnOneMessage {
 
   @@index([matchId])
   @@index([senderId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// BUZZ MEETUP ORCHESTRATION
+// Tables created via raw SQL bootstrap (same pattern as CohortMessage).
+// Run `prisma db push` with DIRECT_URL to sync after schema changes.
+// ─────────────────────────────────────────────────────────────
+
+/// Meetup state machine for a cohort's first in-person meetup.
+/// One record per cohort — updated in place as the state advances.
+model CohortMeetup {
+  /// cuid — generated application-side before INSERT
+  id       String @id
+  cohortId String @unique
+
+  /// MeetupState string — stored as TEXT in DB (not a PG enum)
+  /// to avoid migration complexity with pgBouncer transaction pooler.
+  /// Values: NOT_STARTED | FINDING_TIME | TIME_PROPOSED | TIME_CONFIRMED |
+  ///         CHECKING_LOCATION | ASKING_EXISTING_LOCATION | POLL_ACTIVE |
+  ///         LOCATION_CONFIRMED | MEETUP_CONFIRMED | COMPLETED |
+  ///         NO_COMMON_TIME | CANCELLED
+  state String @default("NOT_STARTED")
+
+  /// Human-readable proposed time, e.g. "Saturday, August 3 at 3:00 PM"
+  proposedTimeText  String?
+  /// ISO timestamp of proposed meetup start
+  proposedDate      DateTime?
+  /// Set when state reaches TIME_CONFIRMED
+  confirmedDate     DateTime?
+  /// Whether all members confirmed Charlotte attendance
+  allInCharlotte    Boolean?
+  /// Free-text location notes from members
+  locationNotes     String?   @db.Text
+  /// Final confirmed location name
+  confirmedLocation String?
+
+  poll MeetupPoll?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cohortId])
+}
+
+/// Location poll created when BUZZ needs the group to vote on a venue.
+model MeetupPoll {
+  id       String       @id
+  meetupId String       @unique
+  meetup   CohortMeetup @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+
+  options MeetupPollOption[]
+  votes   MeetupVote[]
+
+  /// ID of the winning MeetupPollOption, set when poll closes
+  winnerId String?
+
+  /// Poll automatically closes 48 hours after creation
+  deadline  DateTime?
+  closedAt  DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([meetupId])
+}
+
+/// One of exactly 4 location options in a MeetupPoll
+model MeetupPollOption {
+  id     String     @id
+  pollId String
+  poll   MeetupPoll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+  /// 1–4 display order
+  order       Int
+  name        String
+  description String  @db.Text
+  address     String?
+  /// "coffee" | "restaurant" | "co-working" | "bar-lounge" | "rooftop" | "park"
+  type        String
+  /// True when this option matches the most common member-preferred location type
+  recommended Boolean @default(false)
+
+  votes MeetupVote[]
+
+  @@index([pollId])
+}
+
+/// One vote per user per poll — enforced by unique constraint
+model MeetupVote {
+  id       String           @id
+  pollId   String
+  poll     MeetupPoll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  optionId String
+  option   MeetupPollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId   String
+
+  createdAt DateTime @default(now())
+
+  @@unique([pollId, userId])
+  @@index([pollId])
+  @@index([userId])
+}
+
+/// Record created when a member leaves a cohort — captures reason and rematch request.
+model CohortDeparture {
+  id       String @id
+  cohortId String
+  userId   String
+
+  reason           String  @db.Text
+  requestedRematch Boolean @default(false)
+  /// true when the departure was triggered by a location (Charlotte) conflict
+  isLocationIssue  Boolean @default(false)
+  /// Which meetup state was active at time of departure (nullable — not always during meetup)
+  meetupStateAtDeparture String?
+
+  adminReviewed Boolean @default(false)
+  adminNotes    String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([cohortId])
+  @@index([userId])
 }

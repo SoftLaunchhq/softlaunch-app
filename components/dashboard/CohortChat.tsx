@@ -17,6 +17,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Send, Zap, Sparkles, Loader2, MessageCircle, RefreshCw } from "lucide-react"
+import { MeetupBanner } from "@/components/dashboard/MeetupBanner"
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -385,6 +386,16 @@ export function CohortChat({
             Ask BUZZ
           </button>
         </div>
+      </div>
+
+      {/* First-meetup orchestration banner — shown above the weekly prompt */}
+      <div className="flex-shrink-0">
+        <MeetupBanner
+          cohortId={cohortId}
+          currentUserId={currentUserId}
+          cohortName={cohortName}
+          onStateChange={() => fetchMessages(true)}
+        />
       </div>
 
       {/* Weekly prompt banner */}

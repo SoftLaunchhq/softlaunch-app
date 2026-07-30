@@ -11,6 +11,8 @@ import {
   Settings,
   Shield,
   UserRound,
+  LogOut,
+  AlertTriangle,
 } from "lucide-react"
 import { db } from "@/lib/db"
 
@@ -83,11 +85,13 @@ export default async function AdminLayout({
   if (!isAdmin) redirect("/dashboard")
 
   const navItems = [
-    { href: "/admin",          icon: LayoutDashboard, label: "Overview" },
-    { href: "/admin/users",    icon: Users,            label: "Users" },
-    { href: "/admin/cohorts",  icon: Group,            label: "Cohorts" },
-    { href: "/admin/matching", icon: Sparkles,         label: "Cohort Matching" },
-    { href: "/admin/one-on-one", icon: UserRound,      label: "1-on-1 Matching" },
+    { href: "/admin",             icon: LayoutDashboard, label: "Overview" },
+    { href: "/admin/users",       icon: Users,            label: "Users" },
+    { href: "/admin/cohorts",     icon: Group,            label: "Cohorts" },
+    { href: "/admin/matching",    icon: Sparkles,         label: "Cohort Matching" },
+    { href: "/admin/one-on-one",  icon: UserRound,        label: "1-on-1 Matching" },
+    { href: "/admin/departures",       icon: LogOut,          label: "Departures" },
+    { href: "/admin/inactive-members", icon: AlertTriangle,   label: "Inactive Members" },
   ]
 
   return (

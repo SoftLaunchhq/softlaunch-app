@@ -77,7 +77,10 @@
   --sl-text-muted:    107 98 88;    /* #6B6258 */
   --sl-text-subtle:   158 142 130;  /* #9E8E82 */
 
-  /* Brand palette stays the same */
+  /* Brand primary darkened for WCAG AA on cream backgrounds (#0F535E = 7.98:1 vs cream) */
+  --sl-primary:       15 83 94;     /* #0F535E — deep teal, 7.98:1 on cream */
+  --sl-primary-h:     10 65 76;     /* slightly darker hover */
+  --sl-primary-l:     24 120 140;   /* lighter variant */
 
   /* Borders — warm light tan */
   --sl-border:        210 198 185;  /* #D2C6B9 */
