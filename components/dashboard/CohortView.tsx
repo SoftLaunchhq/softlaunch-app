@@ -22,7 +22,7 @@ import { PromptCard } from "./PromptCard"
 import { FeedbackModal } from "./FeedbackModal"
 import { CohortChat } from "./CohortChat"
 import { DepartureModal } from "./DepartureModal"
-import { AvailabilityPanel } from "./AvailabilityPanel"
+import { WeeklyAvailabilityPanel } from "./WeeklyAvailabilityPanel"
 import { cohortThemeLabel } from "@/lib/utils"
 import type { Subscription } from "@prisma/client"
 
@@ -197,7 +197,7 @@ export function CohortView({
         transition={{ delay: 0.1 }}
         className="neon-panel p-3"
       >
-        <div className="mb-3 grid grid-cols-3 gap-2 md:grid-cols-5">
+        <div className="mb-3 grid grid-cols-3 gap-2 md:grid-cols-6">
           {tabs.map((tab) => (
             <motion.button
               key={tab.key}
@@ -209,8 +209,8 @@ export function CohortView({
               className={`
                 flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors
                 ${activeTab === tab.key
-                  ? "border-cyan-300/40 bg-cyan-300/15 text-cyan-100 shadow-[0_0_20px_rgba(34,211,238,0.12)]"
-                  : "border-brand-border/80 bg-brand-surface/50 text-brand-text-muted hover:border-cyan-300/25 hover:text-brand-text"
+                  ? "border-brand-primary/50 bg-brand-primary/15 text-brand-text shadow-[0_0_12px_rgba(15,83,94,0.18)]"
+                  : "border-brand-border/80 bg-brand-surface/50 text-brand-text-muted hover:border-brand-primary/30 hover:text-brand-text"
                 }
                 ${tab.disabled ? "cursor-not-allowed opacity-40" : ""}
               `}
@@ -302,11 +302,12 @@ export function CohortView({
                   Your Availability
                 </p>
                 <p className="mt-0.5 text-xs text-brand-text-muted">
-                  Keep this up to date so BUZZ can find a meetup time that works for everyone.
+                  Set your available times per week so BUZZ can find a meetup window that works for everyone.
                 </p>
               </div>
-              <AvailabilityPanel
+              <WeeklyAvailabilityPanel
                 cohortId={cohort.id}
+                currentWeek={currentWeek}
                 onSaved={() => setActiveTab("chat")}
               />
             </div>
@@ -386,6 +387,28 @@ export function CohortView({
                   Your group link will be shared by the SoftLaunch team within 24 hours of cohort approval.
                 </p>
               )}
+
+              {/* Cohort Actions */}
+              <div className="mt-6 border-t border-brand-border/40 pt-5">
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-brand-text">
+                  Cohort Actions
+                </h3>
+                <p className="mb-3 text-xs text-brand-text-subtle">
+                  If something isn&apos;t working out, you can leave this cohort below.
+                  BUZZ will never ask you to leave for scheduling or poll reasons — if timing is the issue, just update your availability and retry.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowDeparture(true)}
+                  className="flex items-center gap-2 rounded-xl border border-rose-500/25 bg-rose-500/8 px-4 py-2.5 text-sm font-medium text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/12 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Leave cohort
+                </button>
+                <p className="mt-2 text-[11px] text-brand-text-subtle">
+                  You&apos;ll be asked for a reason and given the option to request a rematch.
+                </p>
+              </div>
             </div>
           )}
         </div>

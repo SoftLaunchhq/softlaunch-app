@@ -658,7 +658,7 @@ describe("Availability retry flow", () => {
 
   it("retry action re-runs calculateCommonAvailability", () => {
     const idx = meetupSrc.indexOf(`action === "retry"`)
-    const slice = meetupSrc.slice(idx, idx + 800)
+    const slice = meetupSrc.slice(idx, idx + 1800)
     assert.ok(
       slice.includes("calculateCommonAvailability"),
       "retry must re-run availability calculation"

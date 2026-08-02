@@ -288,6 +288,73 @@ function newId(prefix: string) {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
 }
 
+// ─── Weekly availability → MemberAvailability ─────────────────
+//
+// Converts MemberWeeklyAvailability rows into the coarse-grained
+// MemberAvailability shape used by calculateCommonAvailability.
+// Returns null if no weekly slots are found for the given week.
+
+async function getMemberAvailsFromWeeklySlots(
+  memberIds: string[],
+  cohortId: string,
+  weekNumber: number
+): Promise<MemberAvailability[] | null> {
+  try {
+    type SlotRow = {
+      userId: string
+      dayOfWeek: string
+      type: string
+      startTime: string | null
+      endTime:   string | null
+    }
+    const slots = await db.$queryRaw<SlotRow[]>`
+      SELECT "userId","dayOfWeek","type","startTime","endTime"
+      FROM "MemberWeeklyAvailability"
+      WHERE "userId" = ANY(${memberIds}::text[])
+        AND "cohortId" = ${cohortId}
+        AND "weekNumber" = ${weekNumber}
+        AND "type" != 'not_available'
+    `
+    if (slots.length === 0) return null
+
+    // Group by userId
+    const byUser: Record<string, SlotRow[]> = {}
+    for (const slot of slots) {
+      if (!byUser[slot.userId]) byUser[slot.userId] = []
+      byUser[slot.userId].push(slot)
+    }
+
+    // Only proceed if ALL members have weekly slots
+    if (Object.keys(byUser).length < memberIds.length) return null
+
+    return memberIds.map((userId) => {
+      const userSlots = byUser[userId] ?? []
+      const preferredDays = [...new Set(userSlots.map((s) => s.dayOfWeek))]
+
+      // Derive preferredTime: look at custom time blocks for the most common window
+      const customSlots = userSlots.filter((s) => s.type === "custom" && s.startTime)
+      let preferredTime: string | null = null
+      if (customSlots.length > 0) {
+        const avgStart = customSlots.reduce((sum, s) => {
+          const [h, m] = (s.startTime ?? "09:00").split(":").map(Number)
+          return sum + h + (m / 60)
+        }, 0) / customSlots.length
+
+        if (avgStart < 12) preferredTime = "mornings"
+        else if (avgStart < 17) preferredTime = "flexible"
+        else preferredTime = "evenings"
+      } else {
+        preferredTime = "flexible"  // all_day = flexible
+      }
+
+      return { userId, preferredDays, preferredTime }
+    })
+  } catch {
+    // Table may not exist yet — fall back to cohort preferences
+    return null
+  }
+}
+
 // ─── GET /api/cohorts/[id]/meetup ────────────────────────────
 
 export async function GET(
@@ -424,7 +491,7 @@ export async function POST(
     const cohort = await db.cohort.findUnique({
       where: { id: cohortId },
       select: {
-        id: true, name: true, startDate: true,
+        id: true, name: true, startDate: true, currentWeek: true,
         memberships: {
           where: { status: "ACTIVE" },
           select: {
@@ -465,8 +532,12 @@ export async function POST(
         return NextResponse.json({ error: "Meetup planning already in progress", state: meetup.state }, { status: 409 })
       }
 
-      // Calculate availability
-      const memberAvails: MemberAvailability[] = cohort.memberships.map((m) => ({
+      // Use weekly availability for the current cohort week if available; fall back to CohortPreferences
+      const currentWeek: number = (cohort as any).currentWeek ?? 1
+      const memberIds = cohort.memberships.map((m) => m.user.id)
+      const weeklyAvails = await getMemberAvailsFromWeeklySlots(memberIds, cohortId, currentWeek)
+
+      const memberAvails: MemberAvailability[] = weeklyAvails ?? cohort.memberships.map((m) => ({
         userId: m.user.id,
         preferredDays: m.user.cohortPrefs?.preferredDays ?? [],
         preferredTime: m.user.cohortPrefs?.preferredTime ?? null,
@@ -532,12 +603,17 @@ export async function POST(
     }
 
     if (action === "retry") {
-      // Allowed from NO_COMMON_TIME — re-run availability calculation
+      // Allowed from NO_COMMON_TIME — re-run availability calculation with latest data
       if (!meetup || meetup.state !== "NO_COMMON_TIME") {
         return NextResponse.json({ error: `Can only retry from NO_COMMON_TIME state` }, { status: 409 })
       }
 
-      const memberAvails: MemberAvailability[] = cohort.memberships.map((m) => ({
+      // Try weekly availability first (may have been updated since last check)
+      const currentWeek: number = (cohort as any).currentWeek ?? 1
+      const memberIds = cohort.memberships.map((m) => m.user.id)
+      const weeklyAvails = await getMemberAvailsFromWeeklySlots(memberIds, cohortId, currentWeek)
+
+      const memberAvails: MemberAvailability[] = weeklyAvails ?? cohort.memberships.map((m) => ({
         userId: m.user.id,
         preferredDays: m.user.cohortPrefs?.preferredDays ?? [],
         preferredTime: m.user.cohortPrefs?.preferredTime ?? null,

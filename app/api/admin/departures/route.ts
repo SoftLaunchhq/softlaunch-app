@@ -44,6 +44,11 @@ async function ensureDepartureTable() {
     await db.$executeRaw`
       CREATE INDEX IF NOT EXISTS "CohortDeparture_userId_idx" ON "CohortDeparture" ("userId")
     `
+    // Add status column if it doesn't exist yet
+    await db.$executeRaw`
+      ALTER TABLE "CohortDeparture"
+      ADD COLUMN IF NOT EXISTS "status" TEXT NOT NULL DEFAULT 'pending'
+    `
   } catch (err: any) {
     console.warn("[admin/departures] ensureTable:", err?.message?.slice(0, 200))
   }
@@ -90,6 +95,7 @@ export async function GET(req: NextRequest) {
       meetupStateAtDeparture: string | null
       adminReviewed: boolean
       adminNotes: string | null
+      status: string
       createdAt: Date
     }
 
@@ -97,14 +103,16 @@ export async function GET(req: NextRequest) {
 
     if (cohortId) {
       rows = await db.$queryRaw<DepartureRow[]>`
-        SELECT * FROM "CohortDeparture"
+        SELECT *, COALESCE("status", 'pending') AS "status"
+        FROM "CohortDeparture"
         WHERE "cohortId" = ${cohortId}
         ORDER BY "createdAt" DESC
         LIMIT ${limit} OFFSET ${offset}
       `
     } else {
       rows = await db.$queryRaw<DepartureRow[]>`
-        SELECT * FROM "CohortDeparture"
+        SELECT *, COALESCE("status", 'pending') AS "status"
+        FROM "CohortDeparture"
         ORDER BY "createdAt" DESC
         LIMIT ${limit} OFFSET ${offset}
       `
@@ -144,6 +152,7 @@ export async function GET(req: NextRequest) {
         : "Unknown"
       return {
         ...r,
+        status: r.status ?? "pending",
         createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : r.createdAt,
         memberName: fullName,
         memberEmail: user?.email ?? null,
@@ -152,12 +161,12 @@ export async function GET(req: NextRequest) {
     })
 
     // Summary counts
-    const total = departures.length
-    const rematchRequested = departures.filter((d) => d.requestedRematch).length
-    const locationIssues = departures.filter((d) => d.isLocationIssue).length
-    const pending = departures.filter((d) => !d.adminReviewed).length
+    const total    = departures.length
+    const rematch  = departures.filter((d) => d.requestedRematch).length
+    const location = departures.filter((d) => d.isLocationIssue).length
+    const pending  = departures.filter((d) => !d.adminReviewed && (d.status === "pending" || !d.status)).length
 
-    return NextResponse.json({ departures, summary: { total, rematchRequested, locationIssues, pending } })
+    return NextResponse.json({ departures, summary: { total, rematch, location, pending } })
 
   } catch (err: any) {
     console.error("[admin/departures] GET error:", err?.message?.slice(0, 300))
